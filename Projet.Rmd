@@ -17,6 +17,66 @@ body {
 }
 </style>
 
+<body>
+
+******
+
+<center>
+**↓↓ Accès au projet ↓↓**
+<br />
+[Lien GitHub du projet](https://github.com/Antoine553/INFO0806)
+</center>
+
+******
+
+<br />
+# **Introduction**
+
+<br />
+
+Dans le cadre du module de statistiques appliquées, nous avions abordé les bases des statistiques et pris en main des outils permettant d'effectuer des operation statistique avancée grâce au langage R, à partir d’un jeu de données. Ainsi, notre choix s'est porté sur des données statistiques relatives à <bold>je sais pas</bold>. Celles-ci proviennent du site internet <bold>je sais pas</bold>.
+
+Ce projet de statistiques appliquées consiste en l'utilisation d'outils R adaptés afin d'effectuer des régression linéaire sur notre jeu de données et produire un rapport.
+<br />
+
+******
+
+<br />
+# **Outils et environnement de travail**
+
+
+## R et RStudio 
+ 
+R est un langage de programmation dont le but est de pouvoir traiter et organiser des jeux de données afin de pouvoir y appliquer des tests statistiques plus ou moins complexes et se représenter ces données graphiquement à l'aide d'une grande variété de graphiques disponibles. RStudio est une application proposant un environnement de développement et des outils adaptés au langage et à l'environnement de programmation R. 
+
+La fonction principale de RStudio consiste à faciliter le développement d'applications en langage R. Pour ce faire, le programme dispose de nombreux outils qui vous permettent notamment de créer des scripts, compiler du code, créer des graphes, ainsi que de travailler avec divers jeux de données. 
+
+<br />
+
+## R markdown
+
+L’extension R markdown permet de générer des documents de manière dynamique en mélangeant texte mis en forme et résultats produits par du code R. Les documents générés peuvent être au format HTML, PDF, Word, et bien d’autres. C’est donc un outil très pratique pour l’exportation, la communication et la diffusion de résultats d’analyse.
+
+<br />
+
+## Outils complémentaires 
+
+* *tidyverse* : Il s’agit d’une collection d’extensions relatives à la science des données, et permettant la manipulation des tableaux de données, l’import/export de données, la manipulation de variables ou, entre autres, la visualisation de données ;
+* *data.table* : Extension et manipulation avancée des tableaux de données ;
+* *plotly* et *highcharter* : Comme *ggplot2* (compris dans le *tidyverse*), ces packages permettent la visualisation de données, à la différence près qu’ils rendent ces graphiques interactifs ;
+* *hrbrthemes* : Thèmes pour *ggplot2*.
+
+<br />
+<br />
+
+******
+
+<br />
+
+## Régression linéaire
+
+<br />
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -219,3 +279,6 @@ ggplot(my_prest2, aes(y=prestige, x=education))+
   theme_classic()+
   annotate("text", x = 9, y = 80, label = "prestige = -10.73 + 5.36 * education\n (pval<0.001)")
 ```
+
+
+</body>
