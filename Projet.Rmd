@@ -24,45 +24,103 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r load, message=FALSE, warning=FALSE, include=FALSE}
 library(data.table)
 library(tidyverse)
+library(hrbrthemes)
+library(plotly)
 library(car)
 ```
 
 ```{r datasets, message=FALSE}
-dat <- fread(file='data/prestige.csv')
-dat_tible <- as_tibble(dat)
+data <- read_csv("data/prestige.csv") %>% as_tibble()
+data
+```
+
+```{r education}
+education <- data %>% 
+  ggplot(aes(x = education, y = prestige)) +
+  geom_point() +
+  geom_smooth(method = loess, color = "red", fill = "#69b3a2", se = T) +
+  geom_smooth(method = lm, color = "blue", se = F) +
+  theme_ipsum()
+
+scatter_edu <- ggplotly(education)
+scatter_edu
+```
+
+```{r income}
+income <- data %>% 
+  ggplot(aes(x = income, y = prestige)) +
+  geom_point() +
+  geom_smooth(method = loess, color = "red", fill = "#69b3a2", se = T) +
+  geom_smooth(method = lm, color = "blue", se = F) +
+  theme_ipsum()
+
+scatter_inc <- ggplotly(income)
+scatter_inc
 ```
 
 ```{r}
-scatterplot(prestige~education, data=dat_tible)
+prest.lm1 <- lm(prestige~education, data = Prestige)
+prest.lm1
 ```
 
-```{r}
-scatterplot(prestige~income, data=dat_tible)
+```{r lagplot}
+bacf <- acf(residuals(prest.lm1), plot = F)
+bacfdf <- with(bacf, data.frame(lag, acf))
+conf.level <- 0.95
+ciline <- qnorm((1 - conf.level)/2)/sqrt(length(residuals(prest.lm1)))
+
+lag_plot <- bacfdf %>%
+  ggplot(aes(x = lag, y = acf)) +
+  geom_hline(aes(yintercept = 0)) +
+  geom_segment(aes(xend = lag, yend = 0)) +
+  geom_hline(aes(yintercept = ciline), linetype = 3, color = 'darkblue') +     
+  geom_hline(aes(yintercept = -ciline), linetype = 3, color = 'darkblue') +
+  theme_ipsum()
+
+lag_plot <- ggplotly(lag_plot, tooltip = c("lag", "acf"))
+lag_plot
 ```
 
-```{r}
-prest.lm1 <- lm(prestige~education, data=dat_tible)
-acf(residuals(prest.lm1), main="prest.lm1")
-```
 
-```{r}
+```{r durbinWatson_edu}
 durbinWatsonTest(prest.lm1)
 ```
 
-```{r}
-plot(prest.lm1,2)
+```{r qq_edu}
+qq_edu <- prest.lm1 %>%
+  ggplot(aes(sample = residuals(prest.lm1) / 10))+
+  stat_qq() + stat_qq_line() +
+  #theme_ipsum() +
+  labs(x = "Theoretical Quantiles\nlm(prestige ~ education)", 
+       y = "Standardized residuals")
+
+#qq_edu <- ggplotly(qq_edu)
+qq_edu
 ```
 
-```{r}
+```{r shapiro_edu}
 shapiro.test(residuals(prest.lm1))
 ```
 
 ```{r}
-prest.lm2 <- lm(prestige~income, data=Prestige)
-plot(prest.lm2,2)
+prest.lm2 <- lm(prestige~income, data = Prestige)
+prest.lm2
 ```
 
-```{r}
+```{r qq_inc}
+qq_inc <- prest.lm2 %>%
+  ggplot(aes(sample = residuals(prest.lm2) / 10))+
+  stat_qq() + stat_qq_line() +
+  #theme_ipsum() +
+  labs(x = "Theoretical Quantiles\nlm(prestige ~ income)", 
+       y = "Standardized residuals")
+
+#qq_inc <- ggplotly(qq_inc)
+qq_inc
+```
+
+
+```{r shapiro_inc}
 shapiro.test(residuals(prest.lm2))
 ```
 
