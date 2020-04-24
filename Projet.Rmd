@@ -1,0 +1,163 @@
+---
+title: "INFO0806 – Statistiques appliquées"
+author: "FUZELLIER Maxence, BARBET Antoine"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true # table of content true
+    toc_depth: 3 # three depths of headings (#, ## and ###)
+editor_options: 
+  chunk_output_type: inline
+---
+
+<style>
+body {
+  text-align: justify;
+  font-size: 14pt;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load, message=FALSE, warning=FALSE, include=FALSE}
+library(data.table)
+library(tidyverse)
+library(car)
+```
+
+```{r datasets, message=FALSE}
+dat <- fread(file='data/prestige.csv')
+dat_tible <- as_tibble(dat)
+```
+
+```{r}
+scatterplot(prestige~education, data=dat_tible)
+```
+
+```{r}
+scatterplot(prestige~income, data=dat_tible)
+```
+
+```{r}
+prest.lm1 <- lm(prestige~education, data=dat_tible)
+acf(residuals(prest.lm1), main="prest.lm1")
+```
+
+```{r}
+durbinWatsonTest(prest.lm1)
+```
+
+```{r}
+plot(prest.lm1,2)
+```
+
+```{r}
+shapiro.test(residuals(prest.lm1))
+```
+
+```{r}
+prest.lm2 <- lm(prestige~income, data=Prestige)
+plot(prest.lm2,2)
+```
+
+```{r}
+shapiro.test(residuals(prest.lm2))
+```
+
+```{r}
+plot(prest.lm1, 3)
+```
+
+```{r}
+ncvTest(prest.lm1)
+```
+
+```{r}
+plot(prest.lm1,1)
+```
+
+```{r}
+summary(prest.lm1)
+```
+
+```{r}
+confint(prest.lm1)
+```
+
+```{r}
+influenceIndexPlot(prest.lm1)
+```
+
+```{r}
+outlierTest(prest.lm1)
+```
+
+```{r}
+prest.lm1bis <- lm(prestige~education, data=Prestige[-c(53,67),])
+compareCoefs(prest.lm1 ,prest.lm1bis) 
+```
+
+```{r}
+my_df <- data.frame(education=c(10.25))
+predict(prest.lm1, newdata=my_df)
+```
+
+```{r}
+predict(prest.lm1, newdata=my_df, interval="prediction")
+predict(prest.lm1, newdata=my_df, interval="confidence")
+```
+
+```{r}
+my_df <- data.frame(education=c(10.25, 11.25, 12.25))
+predict(prest.lm1, newdata=my_df,interval="confidence")
+```
+
+```{r}
+my_pres <- Prestige
+my_pres$res <-residuals(prest.lm1)
+head(my_pres)
+```
+
+```{r}
+my_pres$fitted <-fitted(prest.lm1)
+head(my_pres)
+```
+
+```{r}
+head(predict(prest.lm1))
+head(fitted(prest.lm1))
+```
+
+```{r}
+vcov(prest.lm1)
+```
+
+```{r}
+ggplot(Prestige, aes(y=prestige, x=education))+
+  geom_point()+
+  geom_smooth(colour="red", method="lm", fill="red") +
+  ylab("Prestige")+
+  xlab("education") +
+  theme_classic()+
+  annotate("text", x = 9, y = 80, label = "prestige = -10.73 + 5.36 * education\n (pval<0.001)")
+```
+
+```{r}
+int_pred <- predict(prest.lm1, interval="prediction")
+my_prest2 <-cbind(Prestige, int_pred)
+head(my_prest2)
+```
+
+```{r}
+ggplot(my_prest2, aes(y=prestige, x=education))+
+  geom_point()+
+  geom_smooth(colour="red", method="lm", fill="red") +
+  geom_line(aes(y=lwr), color = "red", linetype = "dashed")+
+  geom_line(aes(y=upr), color = "red", linetype = "dashed")+    
+  ylab("Prestige")+
+  xlab("education") +
+  theme_classic()+
+  annotate("text", x = 9, y = 80, label = "prestige = -10.73 + 5.36 * education\n (pval<0.001)")
+```
