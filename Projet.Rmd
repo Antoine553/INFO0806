@@ -73,10 +73,6 @@ L’extension R markdown permet de générer des documents de manière dynamique
 
 <br />
 
-## Régression linéaire
-
-<br />
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -89,10 +85,20 @@ library(plotly)
 library(car)
 ```
 
+# **Données**
+
+Chargement des jeux de données :
 ```{r datasets, message=FALSE}
 data <- read_csv("data/prestige.csv") %>% as_tibble()
 data
 ```
+<br />
+
+# **Régression linéaire**
+
+En statistiques, et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
+
+Ici, nous testons donc la relation entre la variable prestige (il s’agit d’un score de prestige relatif à la profession) et la variable éducation (qui reflète le niveau d’étude).
 
 ```{r education}
 education <- data %>% 
@@ -105,6 +111,8 @@ education <- data %>%
 scatter_edu <- ggplotly(education)
 scatter_edu
 ```
+
+Nous testons aussi la relation entre la variable prestige et la variable income.
 
 ```{r income}
 income <- data %>% 
