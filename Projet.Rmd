@@ -2,6 +2,8 @@
 title: "INFO0806 – Statistiques appliquées"
 author: "FUZELLIER Maxence, BARBET Antoine"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
+language: R
+cran: http://cran.rstudio.com
 output: 
   html_document:
     toc: true # table of content true
@@ -78,10 +80,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r load, message=FALSE, warning=FALSE, include=FALSE}
+install.packages("GGally", repo="http://cran.rstudio.com/")
+
 library(data.table)
 library(tidyverse)
 library(hrbrthemes)
 library(plotly)
+library(ggplot2)
+library(GGally)
 library(car)
 ```
 
@@ -109,8 +115,16 @@ data
 En statistiques, et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
 
 Dans un premier temps nous pouvons etudier rapidement d'eventuel corrélation entre deux variables à l'aide d'un scatterplot. Ici nous utilisons la fonction scatterplotMatrix afin de pouvoir en observer plusieur en même temps.
-```{r}
-scatterplotMatrix(~ prestige + income + education + women | type, data = Prestige, regLine=FALSE, smooth=list(spread=FALSE))
+```{r , message=FALSE}
+generate_plot <- function(data, mapping){
+    ggplot(data = data, mapping = mapping) + 
+        geom_point() + 
+        geom_smooth(method=loess, fill="red", color="red") +
+        geom_smooth(method=lm, fill="blue", color="blue")
+}
+
+ggpairs(data,columns = 1:4, lower = list(continuous = generate_plot))
+
 ```
 
 Avec les observation précdante nous pouvons déjà écarter certaine linéarité et choisir lesquelles sont interressantes à étudier. Ici, nous reprenons donc la relation entre la variable prestige (il s’agit d’un score de prestige relatif à la profession) et la variable éducation (qui reflète le niveau d’étude). Cette fois nous utilison ggplot pour une meilleur visualisation et la possibilité d'interagig avec notre graphique.
