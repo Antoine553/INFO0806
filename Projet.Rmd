@@ -114,7 +114,7 @@ data
 
 En statistiques, et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
 
-Dans un premier temps nous pouvons etudier rapidement d'eventuel corrélation entre deux variables à l'aide d'un scatterplot. Ici nous utilisons la fonction scatterplotMatrix afin de pouvoir en observer plusieur en même temps.
+Dans un premier temps nous pouvons etudier rapidement d'eventuel corrélation entre deux variables à l'aide d'un scatterplot. Ici nous utilisons la fonction ggpairs afin de pouvoir en observer plusieur en même temps.
 ```{r , message=FALSE}
 generate_plot <- function(data, mapping){
     ggplot(data = data, mapping = mapping) + 
