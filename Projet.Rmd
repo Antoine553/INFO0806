@@ -88,6 +88,16 @@ library(car)
 # **Données**
 
 Chargement des jeux de données :
+
+notre jeu de donnée se compose de 102 observations avec 6 variables. Les variables sont :
+
+éducation: nombre moyen d'années d'études des titulaires de profession.
+revenu: Le revenu moyen des titulaires de profession, en dollars.
+femmes: pourcentage de femmes dans la profession.
+prestige: La cote de prestige moyenne pour la profession.
+recensement: Le code de la profession utilisé dans l'enquête.
+type: Professionnel et gestionnaire (prof), col blanc (wc), col bleu (bc) ou manquant (NA) (Fox et Weisberg 2011)
+
 ```{r datasets, message=FALSE}
 data <- read_csv("data/prestige.csv") %>% as_tibble()
 data
@@ -98,7 +108,12 @@ data
 
 En statistiques, et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
 
-Ici, nous testons donc la relation entre la variable prestige (il s’agit d’un score de prestige relatif à la profession) et la variable éducation (qui reflète le niveau d’étude).
+Dans un premier temps nous pouvons etudier rapidement d'eventuel corrélation entre deux variables à l'aide d'un scatterplot. Ici nous utilisons la fonction scatterplotMatrix afin de pouvoir en observer plusieur en même temps.
+```{r}
+scatterplotMatrix(~ prestige + income + education + women | type, data = Prestige, regLine=FALSE, smooth=list(spread=FALSE))
+```
+
+Avec les observation précdante nous pouvons déjà écarter certaine linéarité et choisir lesquelles sont interressantes à étudier. Ici, nous reprenons donc la relation entre la variable prestige (il s’agit d’un score de prestige relatif à la profession) et la variable éducation (qui reflète le niveau d’étude). Cette fois nous utilison ggplot pour une meilleur visualisation et la possibilité d'interagig avec notre graphique.
 
 ```{r education}
 education <- data %>% 
@@ -111,7 +126,12 @@ education <- data %>%
 scatter_edu <- ggplotly(education)
 scatter_edu
 ```
+La ligne en trait plein est la droite de régression linéaire (définie par la méthode des moindres carrés) entre les deux variables. La ligne centrale en pointillé est la courbe de régression locale de type lowess.
+Elle indique la tendance globale entre les deux variables. Les deux lignes extérieures représentent un intervalle de confiance de la courbe lowess.
 
+On peut voir que que la droite de régression est presque toujours comprise dans l’intervalle de confiance de la courbe lowess. la linéarité de ces variables est donc très probable.
+
+<br />
 Nous testons aussi la relation entre la variable prestige et la variable income.
 
 ```{r income}
@@ -125,6 +145,8 @@ income <- data %>%
 scatter_inc <- ggplotly(income)
 scatter_inc
 ```
+
+Ici, en regardant la forme du lien entre la variable prestige et la variable income, on s’aperçoit que la droite de régression suis bien moin l’intervalle de confiance de la courbe lowess. l’hypothèse de linéarité est alors plus critiquable.
 
 ```{r}
 prest.lm1 <- lm(prestige~education, data = Prestige)
