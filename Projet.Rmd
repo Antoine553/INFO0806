@@ -86,6 +86,7 @@ library(hrbrthemes)
 library(plotly)
 library(gridExtra)
 library(GGally)
+library(car)
 ```
 
 # **Données**
