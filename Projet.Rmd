@@ -80,8 +80,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r load, message=FALSE, warning=FALSE, include=FALSE}
-install.packages("GGally", repo = "http://cran.rstudio.com/")
-
 library(data.table)
 library(tidyverse)
 library(hrbrthemes)
@@ -103,13 +101,13 @@ Notre jeu de données comporte 102 individus décrits par 6 variables :
 * census : Le code de la profession utilisé dans l'enquête ;
 * type : Professionnel et gestionnaire (prof), col blanc (wc), col bleu (bc) ou manquant (NA) (Fox et Weisberg 2011)
 
-```{r datasets, message=FALSE}
+```{r datasets}
 data <- read_csv("data/prestige.csv") %>% as_tibble()
 data
 ```
 <br />
 
-```{r}
+```{r viz_edu, message=FALSE, warning=FALSE}
 viz_edu <- data %>% 
   ggplot(aes(x = prestige, y = education, col = type)) + 
   geom_point() + theme_bw() +
@@ -169,7 +167,7 @@ En statistiques et en apprentissage automatique, un modèle de régression liné
 
 Dans un premier temps, nous pouvons étudier rapidement d'éventuelles corrélations entre deux variables à l'aide d'un nuage de points. Ici, nous utilisons la fonction *ggpairs* afin de pouvoir en observer plusieurs en même temps.
 
-```{r , message=FALSE}
+```{r scatterM, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 generate_scatterM <- function(data, mapping){
   data %>% ggplot(mapping = mapping) + geom_point(size = 0.8) + 
     geom_smooth(method = loess, color = "red", size = 0.85, se = FALSE) +
@@ -184,7 +182,7 @@ scatterM
 
 Avec les observations précédentes, nous pouvons déjà écarter certaines linéarités et choisir lesquelles sont intéressantes à étudier. Ici, nous reprenons donc la relation entre la variable *prestige* (il s’agit d’un score de prestige relatif à la profession) et la variable *education* (qui reflète le niveau d’étude). Cette fois nous utilisons *ggplot* pour une meilleure représentation.
 
-```{r education}
+```{r education, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 education <- data %>% 
   ggplot(aes(x = education, y = prestige)) +
   geom_point() +
@@ -211,7 +209,7 @@ On constate que que la droite de régression est presque toujours comprise dans 
 
 Nous testons aussi la relation entre les variables *income* et *prestige*.
 
-```{r income}
+```{r income, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 income <- data %>% 
   ggplot(aes(x = income, y = prestige)) +
   geom_point() +
@@ -233,20 +231,20 @@ Ici, en regardant la forme du lien entre la variable entre les deux variables, o
 
 Pour déterminer la droite de régression, on ajuste un modèle linéaire simple aux données, à l’aide de la fonction “lm”.
 
-```{r}
-lin_model1 <- lm(prestige~education, data = Prestige)
-lin_model1
+```{r lin_model_edu}
+lin_model_edu <- lm(prestige ~ education, data = data)
+lin_model_edu
 ```
 
 « Intercept » correspond ici à l’ordonnée à l’origine, le « b » de notre droite, et le « x » est la pente de la droite, ce qui correspond au « b » dans notre notation.
 
 L’équation, de notre droite est donc $y = 5.361x + -10.732$.
 
-```{r lagplot}
-bacf <- acf(residuals(lin_model1), plot = F)
+```{r lagplot, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
+bacf <- acf(residuals(lin_model_edu), plot = F)
 bacfdf <- with(bacf, data.frame(lag, acf))
 conf.level <- 0.95
-ciline <- qnorm((1 - conf.level)/2)/sqrt(length(residuals(lin_model1)))
+ciline <- qnorm((1 - conf.level)/2)/sqrt(length(residuals(lin_model_edu)))
 
 lag_plot <- bacfdf %>%
   ggplot(aes(x = lag, y = acf)) +
@@ -261,11 +259,11 @@ lag_plot
 ```
 
 ```{r durbinWatson_edu}
-durbinWatsonTest(lin_model1)
+durbinWatsonTest(lin_model_edu)
 ```
 
-```{r qq_edu}
-qq_edu <- lin_model1 %>%
+```{r qq_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
+qq_edu <- lin_model_edu %>%
   ggplot(aes(sample = rstandard(.))) +
   stat_qq_line(color = "red", linetype = "dashed") +
   stat_qq(size = 1.2) +
@@ -285,16 +283,16 @@ qq_edu
 ```
 
 ```{r shapiro_edu}
-shapiro.test(residuals(lin_model1))
+shapiro.test(residuals(lin_model_edu))
 ```
 
-```{r}
-lin_model2 <- lm(prestige~income, data = Prestige)
-lin_model2
+```{r lin_model_inc}
+lin_model_inc <- lm(prestige~income, data = data)
+lin_model_inc
 ```
 
-```{r qq_inc}
-qq_inc <- lin_model2 %>%
+```{r qq_inc, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
+qq_inc <- lin_model_inc %>%
   ggplot(aes(sample = rstandard(.)))+
   stat_qq_line(color = "red", linetype = "dashed") +
   stat_qq(size = 1.2) +
@@ -315,11 +313,11 @@ qq_inc
 
 
 ```{r shapiro_inc}
-shapiro.test(residuals(lin_model2))
+shapiro.test(residuals(lin_model_inc))
 ```
 
-```{r}
-sc_loc_edu <- lin_model1 %>%
+```{r sc_loc_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
+sc_loc_edu <- lin_model_edu %>%
   ggplot(aes(fitted(.), sqrt(abs(rstandard(.))))) + 
   geom_point(size = 1.2) +
   geom_smooth(method = loess, se = FALSE) +
@@ -339,12 +337,12 @@ sc_loc_edu <- ggplotly(sc_loc_edu)
 sc_loc_edu
 ```
 
-```{r}
-ncvTest(lin_model1)
+```{r ncv_test}
+ncvTest(lin_model_edu)
 ```
 
-```{r}
-res_v_fit_edu <- lin_model1 %>%
+```{r res_v_fit, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
+res_v_fit_edu <- lin_model_edu %>%
   ggplot(aes(fitted(.), residuals(.))) + 
   geom_point() +
   stat_smooth(method="loess", se = FALSE) + 
@@ -365,39 +363,39 @@ res_v_fit_edu <- ggplotly(res_v_fit_edu)
 res_v_fit_edu
 ```
 
-```{r}
-summary(lin_model1)
+```{r summ_model}
+summary(lin_model_edu)
 ```
 
-```{r}
-confint(lin_model1)
+```{r confint_model}
+confint(lin_model_edu)
 ```
 
-```{r}
+```{r preds}
 predictions <- tibble(education=c(9.21, 11.07, 14.62))
-predict(lin_model1, newdata = predictions, interval = "confidence")
+predict(lin_model_edu, newdata = predictions, interval = "confidence")
 ```
 
-```{r}
-data$residuals <- residuals(lin_model1)
+```{r add_res}
+data$residuals <- residuals(lin_model_edu)
 head(data)
 ```
 
-```{r}
-data$fitted <- fitted(lin_model1)
+```{r add_fitted}
+data$fitted <- fitted(lin_model_edu)
 head(data)
 ```
 
-```{r}
-vcov(lin_model1)
+```{r covariance}
+vcov(lin_model_edu)
 ```
 
-```{r}
-pred_interval <- predict(lin_model1, interval = "prediction")
+```{r add_pred_intervals}
+pred_interval <- predict(lin_model_edu, interval = "prediction")
 data <- cbind(data, pred_interval)
 ```
 
-```{r}
+```{r lin_regression, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 linear_regression <- data %>% 
   ggplot(aes(y = prestige, x = education)) +
   geom_point(size = 1.2) +
@@ -405,8 +403,8 @@ linear_regression <- data %>%
   geom_line(aes(y = lwr), color = "red", linetype = "dashed") +
   geom_line(aes(y =  upr), color = "red", linetype = "dashed") +    
   annotate("text", x = 9, y = 80, 
-           label = paste0("prestige = ", coef(lin_model1)["(Intercept)"] %>% round(3), 
-                          " + ", coef(lin_model1)["education"] %>% round(3), " * education")) +
+           label = paste0("prestige = ", coef(lin_model_edu)["(Intercept)"] %>% round(3), 
+                          " + ", coef(lin_model_edu)["education"] %>% round(3), " * education")) +
   theme_bw() +
   scale_x_continuous(
     breaks = seq(6, 16, 2)
@@ -420,10 +418,6 @@ linear_regression <- data %>%
 
 linear_regression <- ggplotly(linear_regression)
 linear_regression
-```
-
-```{r}
-data
 ```
 
 </body>
