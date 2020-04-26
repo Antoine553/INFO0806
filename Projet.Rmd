@@ -31,19 +31,16 @@ body {
 
 ******
 
-<br />
 # **Introduction**
 
-<br />
+Dans le cadre du module de statistiques appliquées, nous avions abordé les bases des statistiques et pris en main des outils permettant d'effectuer des opérations statistiques avancées grâce au langage R. Ainsi, notre choix s'est porté sur des données statistiques relatives au prestige (score attribuée) de différentes professions canadiennes.
 
-Dans le cadre du module de statistiques appliquées, nous avions abordé les bases des statistiques et pris en main des outils permettant d'effectuer des operation statistique avancée grâce au langage R, à partir d’un jeu de données. Ainsi, notre choix s'est porté sur des données statistiques relatives à <bold>je sais pas</bold>. Celles-ci proviennent du site internet <bold>je sais pas</bold>.
+Ce projet de statistiques appliquées consiste en l'utilisation d'outils R adaptés afin d'effectuer une modélisation statistique sur notre jeu de données et produire un rapport.
 
-Ce projet de statistiques appliquées consiste en l'utilisation d'outils R adaptés afin d'effectuer des régression linéaire sur notre jeu de données et produire un rapport.
 <br />
 
 ******
 
-<br />
 # **Outils et environnement de travail**
 
 
@@ -65,22 +62,21 @@ L’extension R markdown permet de générer des documents de manière dynamique
 
 * *tidyverse* : Il s’agit d’une collection d’extensions relatives à la science des données, et permettant la manipulation des tableaux de données, l’import/export de données, la manipulation de variables ou, entre autres, la visualisation de données ;
 * *data.table* : Extension et manipulation avancée des tableaux de données ;
-* *plotly* et *highcharter* : Comme *ggplot2* (compris dans le *tidyverse*), ces packages permettent la visualisation de données, à la différence près qu’ils rendent ces graphiques interactifs ;
+* *plotly* : Comme *ggplot2* (compris dans le *tidyverse*), ce package permet la visualisation de données, à la différence près qu’il renden ces graphiques interactifs ;
+* *car* : Appliquer une régression linéaire et des tests statistiques ;
 * *hrbrthemes* : Thèmes pour *ggplot2*.
 
 <br />
-<br />
 
 ******
-
-<br />
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r load, message=FALSE, warning=FALSE, include=FALSE}
-library(data.table)
+library(rmarkdown)
+library(knitr)
 library(tidyverse)
 library(hrbrthemes)
 library(plotly)
@@ -91,24 +87,26 @@ library(car)
 
 # **Données**
 
-Chargement des jeux de données :
+Notre [jeu de données](https://github.com/selva86/datasets/blob/master/Prestige.csv) comporte 102 individus décrits par 6 variables :
 
-Notre jeu de données comporte 102 individus décrits par 6 variables :
-
-* education : nombre moyen d'années d'études des titulaires de profession ;
-* income : Le revenu moyen des titulaires de profession, en dollars ;
+* education : Nombre moyen d'années d'études des titulaires de postes, en 1971 ;
+* income : Le revenu moyen des titulaires de postes, en dollars, en 1971 ;
 * women : pourcentage de femmes dans la profession ; 
-* prestige : La cote de prestige moyenne pour la profession ;
-* census : Le code de la profession utilisé dans l'enquête ;
-* type : Professionnel et gestionnaire (prof), col blanc (wc), col bleu (bc) ou manquant (NA) (Fox et Weisberg 2011)
+* prestige : Score de prestige Pineo-Porter pour la profession, d'après une enquête sociale réalisée au milieu des années 60 ;
+* census : Le code de classification nationale de chaque profession ;
+* type : Type de profession. Mangériale et technique (prof), col blanc (wc), col bleu (bc).
 
-```{r datasets}
+```{r datasets, include=FALSE}
 data <- read_csv("data/prestige.csv") %>% as_tibble()
-data
 ```
 <br />
 
-```{r viz_edu, message=FALSE, warning=FALSE}
+```{r show_data}
+head(data) %>% paged_table()
+```
+
+
+```{r viz_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 viz_edu <- data %>% 
   ggplot(aes(x = prestige, y = education, col = type)) + 
   geom_point() + theme_bw() +
@@ -239,7 +237,7 @@ lin_model_edu
 
 « Intercept » correspond ici à l’ordonnée à l’origine, le « b » de notre droite, et le « x » est la pente de la droite, ce qui correspond au « b » dans notre notation.
 
-L’équation, de notre droite est donc $y = 5.361x + -10.732$.
+L’équation, de notre droite est donc $y = -10.732 + 5.361x$.
 
 ```{r lagplot, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 bacf <- acf(residuals(lin_model_edu), plot = F)
@@ -369,29 +367,29 @@ summary(lin_model_edu)
 ```
 
 ```{r confint_model}
-confint(lin_model_edu)
+confint(lin_model_edu) %>% kable()
 ```
 
 ```{r preds}
 predictions <- tibble(education=c(9.21, 11.07, 14.62))
-predict(lin_model_edu, newdata = predictions, interval = "confidence")
+predict(lin_model_edu, newdata = predictions, interval = "confidence") %>% kable()
 ```
 
 ```{r add_res}
 data$residuals <- residuals(lin_model_edu)
-head(data)
+head(data) %>% kable()
 ```
 
 ```{r add_fitted}
 data$fitted <- fitted(lin_model_edu)
-head(data)
+head(data) %>% kable()
 ```
 
 ```{r covariance}
-vcov(lin_model_edu)
+vcov(lin_model_edu) %>% kable()
 ```
 
-```{r add_pred_intervals}
+```{r add_pred_intervals, message=FALSE, warning=FALSE}
 pred_interval <- predict(lin_model_edu, interval = "prediction")
 data <- cbind(data, pred_interval)
 ```
@@ -420,5 +418,7 @@ linear_regression <- data %>%
 linear_regression <- ggplotly(linear_regression)
 linear_regression
 ```
+
+******
 
 </body>
