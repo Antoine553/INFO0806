@@ -80,13 +80,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r load, message=FALSE, warning=FALSE, include=FALSE}
-install.packages("GGally", repo="http://cran.rstudio.com/")
+install.packages("GGally", repo = "http://cran.rstudio.com/")
 
 library(data.table)
 library(tidyverse)
 library(hrbrthemes)
 library(plotly)
-library(ggplot2)
+library(gridExtra)
 library(GGally)
 library(car)
 ```
@@ -95,39 +95,63 @@ library(car)
 
 Chargement des jeux de données :
 
-notre jeu de donnée se compose de 102 observations avec 6 variables. Les variables sont :
+Notre jeu de données comporte 102 individus décrits par 6 variables :
 
-éducation: nombre moyen d'années d'études des titulaires de profession.
-revenu: Le revenu moyen des titulaires de profession, en dollars.
-femmes: pourcentage de femmes dans la profession.
-prestige: La cote de prestige moyenne pour la profession.
-recensement: Le code de la profession utilisé dans l'enquête.
-type: Professionnel et gestionnaire (prof), col blanc (wc), col bleu (bc) ou manquant (NA) (Fox et Weisberg 2011)
+* education : nombre moyen d'années d'études des titulaires de profession ;
+* income : Le revenu moyen des titulaires de profession, en dollars ;
+* women : pourcentage de femmes dans la profession ; 
+* prestige : La cote de prestige moyenne pour la profession ;
+* census : Le code de la profession utilisé dans l'enquête ;
+* type : Professionnel et gestionnaire (prof), col blanc (wc), col bleu (bc) ou manquant (NA) (Fox et Weisberg 2011)
 
 ```{r datasets, message=FALSE}
 data <- read_csv("data/prestige.csv") %>% as_tibble()
+
+data <- data %>% 
+  na.omit()
 data
 ```
 <br />
 
-# **Régression linéaire**
+```{r}
+viz_edu <- data %>% ggplot(aes(x = prestige, y = education, col = type)) + geom_point() + theme_ipsum()
+viz_edu <- ggplotly(viz_edu)
 
-En statistiques, et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
+viz_inc <- data %>% ggplot(aes(x = prestige, y = income, col = type)) + geom_point() + theme_ipsum()
+viz_inc <- ggplotly(viz_inc)
 
-Dans un premier temps nous pouvons etudier rapidement d'eventuel corrélation entre deux variables à l'aide d'un scatterplot. Ici nous utilisons la fonction ggpairs afin de pouvoir en observer plusieur en même temps.
-```{r , message=FALSE}
-generate_plot <- function(data, mapping){
-    ggplot(data = data, mapping = mapping) + 
-        geom_point() + 
-        geom_smooth(method=loess, fill="red", color="red") +
-        geom_smooth(method=lm, fill="blue", color="blue")
-}
+viz_women <- data %>% ggplot(aes(x = prestige, y = women, col = type)) + geom_point() + theme_ipsum()
+viz_women <- ggplotly(viz_women)
 
-ggpairs(data,columns = 1:4, lower = list(continuous = generate_plot))
+viz_census <- data %>% ggplot(aes(x = prestige, y = census, col = type)) + geom_point() + theme_ipsum()
+viz_census <- ggplotly(viz_census)
 
+subplot(viz_edu, viz_inc, viz_women, viz_census, nrows = 2, margin = 0.07)
 ```
 
-Avec les observation précdante nous pouvons déjà écarter certaine linéarité et choisir lesquelles sont interressantes à étudier. Ici, nous reprenons donc la relation entre la variable prestige (il s’agit d’un score de prestige relatif à la profession) et la variable éducation (qui reflète le niveau d’étude). Cette fois nous utilison ggplot pour une meilleur visualisation et la possibilité d'interagig avec notre graphique.
+
+
+# **Régression linéaire**
+
+En statistiques et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
+
+Dans un premier temps, nous pouvons étudier rapidement d'éventuelles corrélations entre deux variables à l'aide d'un nuage de points. Ici, nous utilisons la fonction *ggpairs* afin de pouvoir en observer plusieurs en même temps.
+
+```{r , message=FALSE}
+generate_scatterM <- function(data, mapping){
+  data %>% ggplot(mapping = mapping) + geom_point(size = 0.8) + 
+    geom_smooth(method = loess, color = "red", size = 0.85, se = FALSE) +
+    geom_smooth(method = lm, color = "blue", size = 0.85, se = FALSE) +
+    theme_ipsum()
+}
+
+scatterM <- data %>% ggpairs(columns = 1:5, lower = list(continuous = generate_scatterM))
+
+scatterM <- ggplotly(scatterM)
+scatterM
+```
+
+Avec les observations précédentes, nous pouvons déjà écarter certaines linéarités et choisir lesquelles sont intéressantes à étudier. Ici, nous reprenons donc la relation entre la variable *prestige* (il s’agit d’un score de prestige relatif à la profession) et la variable *education* (qui reflète le niveau d’étude). Cette fois nous utilisons *ggplot* pour une meilleure représentation.
 
 ```{r education}
 education <- data %>% 
@@ -140,13 +164,15 @@ education <- data %>%
 scatter_edu <- ggplotly(education)
 scatter_edu
 ```
-La ligne en trait plein est la droite de régression linéaire (définie par la méthode des moindres carrés) entre les deux variables. La ligne centrale en pointillé est la courbe de régression locale de type lowess.
-Elle indique la tendance globale entre les deux variables. Les deux lignes extérieures représentent un intervalle de confiance de la courbe lowess.
+La droite bleue est définie par la méthode des moindres carrés (MSE), il s'agit d'une droite de régression linéaire entre les variables *education* et *prestige*.
 
-On peut voir que que la droite de régression est presque toujours comprise dans l’intervalle de confiance de la courbe lowess. la linéarité de ces variables est donc très probable.
+La courbe rouge indique la tendance globale entre ces deux variables, il s'agit d'une courbe de régression de type lowess. Les deux courbes extérieures représentent l'intervalle de confiance de cette courbe de régression.
+
+On constate que que la droite de régression est presque toujours comprise dans l’intervalle de confiance, l'hypothèse de linéarite entre les variables *education* et *prestige* est donc acceptable.
 
 <br />
-Nous testons aussi la relation entre la variable prestige et la variable income.
+
+Nous testons aussi la relation entre les variables *income* et *prestige*.
 
 ```{r income}
 income <- data %>% 
@@ -160,20 +186,21 @@ scatter_inc <- ggplotly(income)
 scatter_inc
 ```
 
-Ici, en regardant la forme du lien entre la variable prestige et la variable income, on s’aperçoit que la droite de régression suis bien moin l’intervalle de confiance de la courbe lowess. l’hypothèse de linéarité est alors plus critiquable.
+Ici, en regardant la forme du lien entre la variable entre les deux variables, on s’aperçoit que la droite de régression suis bien moins l’intervalle de confiance de la courbe lowess. l’hypothèse de linéarité est alors plus critiquable.
 <br />
 Pour déterminer la droite de régression, on ajuste un modèle linéaire simple aux données, à l’aide de la fonction “lm”.
+
 ```{r}
-prest.lm1 <- lm(prestige~education, data = Prestige)
-prest.lm1
+lin_model1 <- lm(prestige~education, data = Prestige)
+lin_model1
 ```
 « Intercept » correspond ici à l’ordonnée à l’origine le « b » de notre droite et le « x » est la pente de la droite ce qui correspond au « b » dans notre notation. L’équation, de notre droite est donc y = 5.361x + -10.732.
 
 ```{r lagplot}
-bacf <- acf(residuals(prest.lm1), plot = F)
+bacf <- acf(residuals(lin_model1), plot = F)
 bacfdf <- with(bacf, data.frame(lag, acf))
 conf.level <- 0.95
-ciline <- qnorm((1 - conf.level)/2)/sqrt(length(residuals(prest.lm1)))
+ciline <- qnorm((1 - conf.level)/2)/sqrt(length(residuals(lin_model1)))
 
 lag_plot <- bacfdf %>%
   ggplot(aes(x = lag, y = acf)) +
@@ -188,12 +215,12 @@ lag_plot
 ```
 
 ```{r durbinWatson_edu}
-durbinWatsonTest(prest.lm1)
+durbinWatsonTest(lin_model1)
 ```
 
 ```{r qq_edu}
-qq_edu <- prest.lm1 %>%
-  ggplot(aes(sample = residuals(prest.lm1) / 10))+
+qq_edu <- lin_model1 %>%
+  ggplot(aes(sample = residuals(lin_model1) / 10))+
   stat_qq() + stat_qq_line() +
   #theme_ipsum() +
   labs(x = "Theoretical Quantiles\nlm(prestige ~ education)", 
@@ -204,17 +231,17 @@ qq_edu
 ```
 
 ```{r shapiro_edu}
-shapiro.test(residuals(prest.lm1))
+shapiro.test(residuals(lin_model1))
 ```
 
 ```{r}
-prest.lm2 <- lm(prestige~income, data = Prestige)
-prest.lm2
+lin_model2 <- lm(prestige~income, data = Prestige)
+lin_model2
 ```
 
 ```{r qq_inc}
-qq_inc <- prest.lm2 %>%
-  ggplot(aes(sample = residuals(prest.lm2) / 10))+
+qq_inc <- lin_model2 %>%
+  ggplot(aes(sample = residuals(lin_model2) / 10))+
   stat_qq() + stat_qq_line() +
   #theme_ipsum() +
   labs(x = "Theoretical Quantiles\nlm(prestige ~ income)", 
@@ -226,75 +253,75 @@ qq_inc
 
 
 ```{r shapiro_inc}
-shapiro.test(residuals(prest.lm2))
+shapiro.test(residuals(lin_model2))
 ```
 
 ```{r}
-plot(prest.lm1, 3)
+plot(lin_model1, 3)
 ```
 
 ```{r}
-ncvTest(prest.lm1)
+ncvTest(lin_model1)
 ```
 
 ```{r}
-plot(prest.lm1,1)
+plot(lin_model1,1)
 ```
 
 ```{r}
-summary(prest.lm1)
+summary(lin_model1)
 ```
 
 ```{r}
-confint(prest.lm1)
+confint(lin_model1)
 ```
 
 ```{r}
-influenceIndexPlot(prest.lm1)
+influenceIndexPlot(lin_model1)
 ```
 
 ```{r}
-outlierTest(prest.lm1)
+outlierTest(lin_model1)
 ```
 
 ```{r}
-prest.lm1bis <- lm(prestige~education, data=Prestige[-c(53,67),])
-compareCoefs(prest.lm1 ,prest.lm1bis) 
+lin_model1bis <- lm(prestige~education, data=Prestige[-c(53,67),])
+compareCoefs(lin_model1 ,lin_model1bis) 
 ```
 
 ```{r}
 my_df <- data.frame(education=c(10.25))
-predict(prest.lm1, newdata=my_df)
+predict(lin_model1, newdata=my_df)
 ```
 
 ```{r}
-predict(prest.lm1, newdata=my_df, interval="prediction")
-predict(prest.lm1, newdata=my_df, interval="confidence")
+predict(lin_model1, newdata=my_df, interval="prediction")
+predict(lin_model1, newdata=my_df, interval="confidence")
 ```
 
 ```{r}
 my_df <- data.frame(education=c(10.25, 11.25, 12.25))
-predict(prest.lm1, newdata=my_df,interval="confidence")
+predict(lin_model1, newdata=my_df,interval="confidence")
 ```
 
 ```{r}
 my_pres <- Prestige
-my_pres$res <-residuals(prest.lm1)
+my_pres$res <-residuals(lin_model1)
 head(my_pres)
 ```
 
 ```{r}
-my_pres$fitted <-fitted(prest.lm1)
+my_pres$fitted <-fitted(lin_model1)
 head(my_pres)
 ```
 
 ```{r}
-head(predict(prest.lm1))
-head(fitted(prest.lm1))
+head(predict(lin_model1))
+head(fitted(lin_model1))
 ```
 
 ```{r}
-vcov(prest.lm1)
+vcov(lin_model1)
 ```
 
 ```{r}
@@ -308,7 +335,7 @@ ggplot(Prestige, aes(y=prestige, x=education))+
 ```
 
 ```{r}
-int_pred <- predict(prest.lm1, interval="prediction")
+int_pred <- predict(lin_model1, interval="prediction")
 my_prest2 <-cbind(Prestige, int_pred)
 head(my_prest2)
 ```
