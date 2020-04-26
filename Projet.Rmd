@@ -109,6 +109,7 @@ data <- read_csv("data/prestige.csv") %>% as_tibble()
 
 data <- data %>% 
   na.omit()
+
 data
 ```
 <br />
@@ -141,8 +142,7 @@ Dans un premier temps, nous pouvons étudier rapidement d'éventuelles corrélat
 generate_scatterM <- function(data, mapping){
   data %>% ggplot(mapping = mapping) + geom_point(size = 0.8) + 
     geom_smooth(method = loess, color = "red", size = 0.85, se = FALSE) +
-    geom_smooth(method = lm, color = "blue", size = 0.85, se = FALSE) +
-    theme_ipsum()
+    geom_smooth(method = lm, color = "blue", size = 0.85, se = FALSE)
 }
 
 scatterM <- data %>% ggpairs(columns = 1:5, lower = list(continuous = generate_scatterM))
@@ -157,9 +157,15 @@ Avec les observations précédentes, nous pouvons déjà écarter certaines lin�
 education <- data %>% 
   ggplot(aes(x = education, y = prestige)) +
   geom_point() +
-  geom_smooth(method = loess, color = "red", fill = "#69b3a2", se = T) +
-  geom_smooth(method = lm, color = "blue", se = F) +
-  theme_ipsum()
+  geom_smooth(method = loess, se = T) +
+  geom_smooth(method = lm, color = "red", se = F) +
+  theme_bw() +
+  scale_x_continuous(
+    breaks = seq(6, 16, 2)
+  ) +
+  scale_y_continuous(
+    breaks = seq(20, 80, 20)
+  )
 
 scatter_edu <- ggplotly(education)
 scatter_edu
@@ -178,23 +184,32 @@ Nous testons aussi la relation entre les variables *income* et *prestige*.
 income <- data %>% 
   ggplot(aes(x = income, y = prestige)) +
   geom_point() +
-  geom_smooth(method = loess, color = "red", fill = "#69b3a2", se = T) +
-  geom_smooth(method = lm, color = "blue", se = F) +
-  theme_ipsum()
+  geom_smooth(method = loess, se = T) +
+  geom_smooth(method = lm, color = "red", se = F) +
+  theme_bw() +
+  scale_x_continuous(
+    breaks = seq(0, 25000, 5000)
+  ) +
+  scale_y_continuous(
+    breaks = seq(20, 100, 20)
+  )
 
 scatter_inc <- ggplotly(income)
 scatter_inc
 ```
 
 Ici, en regardant la forme du lien entre la variable entre les deux variables, on s’aperçoit que la droite de régression suis bien moins l’intervalle de confiance de la courbe lowess. l’hypothèse de linéarité est alors plus critiquable.
-<br />
+
 Pour déterminer la droite de régression, on ajuste un modèle linéaire simple aux données, à l’aide de la fonction “lm”.
 
 ```{r}
 lin_model1 <- lm(prestige~education, data = Prestige)
 lin_model1
 ```
-« Intercept » correspond ici à l’ordonnée à l’origine le « b » de notre droite et le « x » est la pente de la droite ce qui correspond au « b » dans notre notation. L’équation, de notre droite est donc y = 5.361x + -10.732.
+
+« Intercept » correspond ici à l’ordonnée à l’origine, le « b » de notre droite, et le « x » est la pente de la droite, ce qui correspond au « b » dans notre notation.
+
+L’équation, de notre droite est donc $y = 5.361x + -10.732$.
 
 ```{r lagplot}
 bacf <- acf(residuals(lin_model1), plot = F)
@@ -208,7 +223,7 @@ lag_plot <- bacfdf %>%
   geom_segment(aes(xend = lag, yend = 0)) +
   geom_hline(aes(yintercept = ciline), linetype = 3, color = 'darkblue') +     
   geom_hline(aes(yintercept = -ciline), linetype = 3, color = 'darkblue') +
-  theme_ipsum()
+  theme_bw()
 
 lag_plot <- ggplotly(lag_plot, tooltip = c("lag", "acf"))
 lag_plot
@@ -220,13 +235,21 @@ durbinWatsonTest(lin_model1)
 
 ```{r qq_edu}
 qq_edu <- lin_model1 %>%
-  ggplot(aes(sample = residuals(lin_model1) / 10))+
-  stat_qq() + stat_qq_line() +
-  #theme_ipsum() +
-  labs(x = "Theoretical Quantiles\nlm(prestige ~ education)", 
+  ggplot(aes(sample = rstandard(.))) +
+  stat_qq_line(color = "red", linetype = "dashed") +
+  stat_qq(size = 1.2) +
+  theme_bw() +
+  scale_x_continuous(
+    breaks = seq(-2, 2, 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(-3, 3, 1)
+  ) +
+  labs(title = "Normal Q-Q",
+       x = "Theoretical Quantiles\nlm(prestige ~ education)", 
        y = "Standardized residuals")
 
-#qq_edu <- ggplotly(qq_edu)
+qq_edu <- ggplotly(qq_edu)
 qq_edu
 ```
 
@@ -241,13 +264,21 @@ lin_model2
 
 ```{r qq_inc}
 qq_inc <- lin_model2 %>%
-  ggplot(aes(sample = residuals(lin_model2) / 10))+
-  stat_qq() + stat_qq_line() +
-  #theme_ipsum() +
-  labs(x = "Theoretical Quantiles\nlm(prestige ~ income)", 
+  ggplot(aes(sample = rstandard(.)))+
+  stat_qq_line(color = "red", linetype = "dashed") +
+  stat_qq(size = 1.2) +
+  theme_bw() +
+  scale_x_continuous(
+    breaks = seq(-2, 2, 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(-3, 3, 1)
+  ) +
+  labs(title = "Normal Q-Q",
+       x = "Theoretical Quantiles\nlm(prestige ~ income)", 
        y = "Standardized residuals")
 
-#qq_inc <- ggplotly(qq_inc)
+qq_inc <- ggplotly(qq_inc)
 qq_inc
 ```
 
@@ -257,7 +288,24 @@ shapiro.test(residuals(lin_model2))
 ```
 
 ```{r}
-plot(lin_model1, 3)
+sc_loc_edu <- lin_model1 %>%
+  ggplot(aes(fitted(.), sqrt(abs(rstandard(.))))) + 
+  geom_point(size = 1.2) +
+  geom_smooth(method = loess, se = FALSE) +
+  theme_bw() +
+  scale_x_continuous(
+    breaks = seq(30, 70, 10)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 1.5),
+    breaks = seq(0, 1.5, 0.5)
+  ) +
+  labs(title = "Scale-location",
+       x = "Fitted values\nlm(prestige ~ education)", 
+       y = "sqrt |Standardized residuals|")
+
+sc_loc_edu <- ggplotly(sc_loc_edu)
+sc_loc_edu
 ```
 
 ```{r}
@@ -265,7 +313,25 @@ ncvTest(lin_model1)
 ```
 
 ```{r}
-plot(lin_model1,1)
+res_v_fit_edu <- lin_model1 %>%
+  ggplot(aes(fitted(.), residuals(.))) + 
+  geom_point() +
+  stat_smooth(method="loess", se = FALSE) + 
+  geom_hline(yintercept = 0, col = "red", linetype = "dashed") +
+  theme_bw() +
+  scale_x_continuous(
+    breaks = seq(30, 70, 10)
+  ) +
+  scale_y_continuous(
+    limits = c(-30, 20),
+    breaks = seq(-30, 20, 10)
+  ) +
+  labs(title = "Residuals vs. Fitted values",
+       x = "Fitted values\nlm(prestige ~ education)", 
+       y = "Residuals")
+    
+res_v_fit_edu <- ggplotly(res_v_fit_edu)
+res_v_fit_edu
 ```
 
 ```{r}
@@ -274,19 +340,6 @@ summary(lin_model1)
 
 ```{r}
 confint(lin_model1)
-```
-
-```{r}
-influenceIndexPlot(lin_model1)
-```
-
-```{r}
-outlierTest(lin_model1)
-```
-
-```{r}
-lin_model1bis <- lm(prestige~education, data=Prestige[-c(53,67),])
-compareCoefs(lin_model1 ,lin_model1bis) 
 ```
 
 ```{r}
