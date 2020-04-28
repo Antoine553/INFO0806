@@ -377,7 +377,7 @@ Ceci nous montre que lorsque les réponses prédites par le modèle (fitted valu
 <br />
 
 # **Interpretation des resultats**
-
+Si les hypothèses de linéarité, de normalité, d’homogénéité et d’indépendance des résidus sont satisfaites, alors les résultats de la régression sont valides, et on peut donc les interpréter à l'aide de la fonction summary.
 ```{r summ_model}
 summary(lin_model_edu)
 ```
