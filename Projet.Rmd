@@ -313,6 +313,39 @@ shapiro.test(residuals(lin_model_edu))
 ```
 <br />
 
+```{r lin_model_inc}
+lin_model_inc <- lm(prestige~income, data = data)
+lin_model_inc
+```
+
+```{r qq_inc, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
+qq_inc <- lin_model_inc %>%
+  ggplot(aes(sample = rstandard(.)))+
+  stat_qq_line(color = "red", linetype = "dashed") +
+  stat_qq(size = 1.2) +
+  theme_bw() +
+  scale_x_continuous(
+    breaks = seq(-2, 2, 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(-3, 3, 1)
+  ) +
+  labs(title = "Normal Q-Q",
+       x = "Theoretical Quantiles\nlm(prestige ~ income)", 
+       y = "Standardized residuals")
+qq_inc <- ggplotly(qq_inc)
+qq_inc
+```
+
+<br />
+
+## Distribution de facons homogéne
+
+```{r shapiro_inc}
+shapiro.test(residuals(lin_model_inc))
+```
+
+
 ## Distribution de facons homogéne
 
 <br />
