@@ -15,7 +15,7 @@ editor_options:
 <style>
 body {
   text-align: justify;
-  font-size: 14pt;
+  font-size: 12pt;
 }
 </style>
 
@@ -239,6 +239,21 @@ lin_model_edu
 
 L’équation, de notre droite est donc $y = -10.732 + 5.361x$.
 
+<br />
+
+# **Evaluation des resultats**
+
+Le test d’évaluation de la significativité du lien linéaire entre les deux variables est valide, si les résidus :
+
+- sont indépendants
+- sont distribués selon une loi Normale de moyenne 0
+- sont distribués de façon homogènes, c’est à dire, avec une variance constante.
+
+<br />
+
+## Indépendance des résultats
+
+On vérifie donc en premier l’hypothèse d’indépendance des résidus. On peut représenterl’autocorrélation des résidus à l'aide d'un lag_plot
 ```{r lagplot, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 bacf <- acf(residuals(lin_model_edu), plot = F)
 bacfdf <- with(bacf, data.frame(lag, acf))
@@ -255,12 +270,23 @@ lag_plot <- bacfdf %>%
 
 lag_plot <- ggplotly(lag_plot, tooltip = c("lag", "acf"))
 lag_plot
+
 ```
+
+Nous pouvons observer qu'une auto-corrélation significative est présente pour les lags 1,2,3,5,7,10 et 12. Il peut donc y avoir une auto-corrélation pour un lag de valeur 1. Nous pouvons utiliser le test de Durbin-Watson pour le confirmer.
 
 ```{r durbinWatson_edu}
 durbinWatsonTest(lin_model_edu)
 ```
+Ici, le test nous indique qu’il existe une auto-corrélation significative entre les résidus d’une ligne du tableau de données et ceux de la ligne suivante. Cela signifie qu'a moins que certain residut agissent par groupe, le test rejette le lien linéaire entre les deux variables.
 
+<br />
+
+## Distribution par loi normale
+
+<br />
+
+Ensuite on verifie donc que les résidut sont distribués selon une loi Normale de moyenne 0. Cette hypothèse peut s’évaluer graphiquement à l’aide d’un QQplot. Si les résidus sont bien distribués le long de la droite figurant sur le plot, alors l’hypothèse de normalité est acceptée.
 ```{r qq_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 qq_edu <- lin_model_edu %>%
   ggplot(aes(sample = rstandard(.))) +
@@ -280,41 +306,18 @@ qq_edu <- lin_model_edu %>%
 qq_edu <- ggplotly(qq_edu)
 qq_edu
 ```
+Le test de Shapiro-Wilk peut également être employé pour évaluer la normalité des résidus. L’hypothèse de normalité est rejetée si la p-value est inférieure à 0.05.
 
 ```{r shapiro_edu}
 shapiro.test(residuals(lin_model_edu))
 ```
+<br />
 
-```{r lin_model_inc}
-lin_model_inc <- lm(prestige~income, data = data)
-lin_model_inc
-```
+## Distribution de facons homogéne
 
-```{r qq_inc, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
-qq_inc <- lin_model_inc %>%
-  ggplot(aes(sample = rstandard(.)))+
-  stat_qq_line(color = "red", linetype = "dashed") +
-  stat_qq(size = 1.2) +
-  theme_bw() +
-  scale_x_continuous(
-    breaks = seq(-2, 2, 1)
-  ) +
-  scale_y_continuous(
-    breaks = seq(-3, 3, 1)
-  ) +
-  labs(title = "Normal Q-Q",
-       x = "Theoretical Quantiles\nlm(prestige ~ income)", 
-       y = "Standardized residuals")
+<br />
 
-qq_inc <- ggplotly(qq_inc)
-qq_inc
-```
-
-
-```{r shapiro_inc}
-shapiro.test(residuals(lin_model_inc))
-```
-
+Enfin nous testons que les residus sont distribués de façon homogènes. pour cela il faut réaliser un “residuals vs fitted plot”. Les “fitted” correspondent aux réponses prédites par le modèle, pour les valeurs observées de la variable prédicitive.
 ```{r sc_loc_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 sc_loc_edu <- lin_model_edu %>%
   ggplot(aes(fitted(.), sqrt(abs(rstandard(.))))) + 
@@ -335,11 +338,19 @@ sc_loc_edu <- lin_model_edu %>%
 sc_loc_edu <- ggplotly(sc_loc_edu)
 sc_loc_edu
 ```
+La courbe rouge, qui est aussi une courbe de régression locale, est globalement plate. Ceci montre que les résidus ont tendance à être répartis de façon homogène tout le long du gradient des valeurs de prestige prédites. Et donc que l’hypothèse d’homogénéité des résidus est acceptée.
 
+Il est également possible d’évaluer cette hypothèse en employant le test de Breush-Pagan. L’hypothèse d’homogénéité est rejetée si la p-value est inférieure à 0.05.
 ```{r ncv_test}
 ncvTest(lin_model_edu)
 ```
+Ici, le test ne rejette pas non plus l’hypothèse d’homogénéité.
 
+<br />
+
+## Hypothése de linéarité
+
+Il existe aussi la possibilité de directement tester la linéarité à l'aide du plot suivant.
 ```{r res_v_fit, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 res_v_fit_edu <- lin_model_edu %>%
   ggplot(aes(fitted(.), residuals(.))) + 
@@ -361,6 +372,11 @@ res_v_fit_edu <- lin_model_edu %>%
 res_v_fit_edu <- ggplotly(res_v_fit_edu)
 res_v_fit_edu
 ```
+Ceci nous montre que lorsque les réponses prédites par le modèle (fitted values) augmentent, les résidus restent globalement uniformément distribués de part et d’autre de 0. Cela montre, qu’en moyenne, la droite de régression, est bien adaptée aux données, et donc que l’hypothèse de linéarité est acceptable.
+
+<br />
+
+# **Interpretation des resultats**
 
 ```{r summ_model}
 summary(lin_model_edu)
