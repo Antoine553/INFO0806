@@ -105,6 +105,7 @@ data <- read_csv("data/prestige.csv") %>% as_tibble()
 head(data) %>% paged_table()
 ```
 
+## Visualisation des données
 
 ```{r viz_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 viz_edu <- data %>% 
@@ -158,13 +159,9 @@ viz_census <- ggplotly(viz_census)
 subplot(viz_edu, viz_inc, viz_women, viz_census, nrows = 2, margin = 0.07)
 ```
 
+Dans un premier temps, nous pouvons observer une forte relation linéaire entre *prestige* et les variables *education* et *income*, contrairement à *women* et *census*.
 
-
-# **Régression linéaire**
-
-En statistiques et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
-
-Dans un premier temps, nous pouvons étudier rapidement d'éventuelles corrélations entre deux variables à l'aide d'un nuage de points. Ici, nous utilisons la fonction *ggpairs* afin de pouvoir en observer plusieurs en même temps.
+Dans un second temps, nous pouvons étudier d'éventuelles corrélations entre deux variables à l'aide d'un nuage de points. Ici, nous utilisons la fonction *ggpairs* afin de pouvoir en observer plusieurs en même temps.
 
 ```{r scatterM, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 generate_scatterM <- function(data, mapping){
@@ -179,7 +176,7 @@ scatterM <- ggplotly(scatterM)
 scatterM
 ```
 
-Avec les observations précédentes, nous pouvons déjà écarter certaines linéarités et choisir lesquelles sont intéressantes à étudier. Ici, nous reprenons donc la relation entre la variable *prestige* (il s’agit d’un score de prestige relatif à la profession) et la variable *education* (qui reflète le niveau d’étude). Cette fois nous utilisons *ggplot* pour une meilleure représentation.
+Avec les observations précédentes, nous pouvons déjà écarter certaines linéarités et choisir lesquelles sont intéressantes à étudier. Ici, nous reprenons donc la relation entre la variable *prestige* (il s’agit d’un score de prestige relatif à la profession) et la variable *education* (qui reflète le niveau d’étude). Cette fois nous utilisons *ggplot2* pour une meilleure représentation.
 
 ```{r education, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 education <- data %>% 
@@ -198,6 +195,7 @@ education <- data %>%
 scatter_edu <- ggplotly(education)
 scatter_edu
 ```
+
 La droite bleue est définie par la méthode des moindres carrés (MSE), il s'agit d'une droite de régression linéaire entre les variables *education* et *prestige*.
 
 La courbe rouge indique la tendance globale entre ces deux variables, il s'agit d'une courbe de régression de type lowess. Les deux courbes extérieures représentent l'intervalle de confiance de cette courbe de régression.
@@ -241,19 +239,18 @@ L’équation, de notre droite est donc $y = -10.732 + 5.361x$.
 
 <br />
 
-# **Evaluation des resultats**
+# **Évaluation des résultats**
 
-Le test d’évaluation de la significativité du lien linéaire entre les deux variables est valide, si les résidus :
-
-- sont indépendants
-- sont distribués selon une loi Normale de moyenne 0
-- sont distribués de façon homogènes, c’est à dire, avec une variance constante.
+Il existe différentes manières, entre diagrammes et tests statistiques, visant à évaluer le lien linéaire entre deux variables. Ce lien est dit « significatif » s'il remplit certaines conditions. En effet, **les résidus doivent être indépendants, distribués selon une loin Normale de moyenne 0 et de façon homogène (variance constante).**
 
 <br />
 
-## Indépendance des résultats
+## Indépendance et auto-corrélation
 
-On vérifie donc en premier l’hypothèse d’indépendance des résidus. On peut représenterl’autocorrélation des résidus à l'aide d'un lag_plot
+### Visualisation
+
+En premier lieu, il faut évaluer l’hypothèse d’indépendance des résidus. À l'aide d'un *lag plot*, il possible de mettre en évidence la présence d'une auto-corrélation.
+
 ```{r lagplot, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 bacf <- acf(residuals(lin_model_edu), plot = F)
 bacfdf <- with(bacf, data.frame(lag, acf))
@@ -270,23 +267,32 @@ lag_plot <- bacfdf %>%
 
 lag_plot <- ggplotly(lag_plot, tooltip = c("lag", "acf"))
 lag_plot
-
 ```
 
-Nous pouvons observer qu'une auto-corrélation significative est présente pour les lags 1,2,3,5,7,10 et 12. Il peut donc y avoir une auto-corrélation pour un lag de valeur 1. Nous pouvons utiliser le test de Durbin-Watson pour le confirmer.
+Sur le graphique ci-dessus, chaque trait correspond à un *lag*, ou coefficient de corrélation entre les résidus de chaque point, les pointillés bleus quant à eux sont les intervalles de confiance du coefficient de corrélation égale à 0.
+
+En s'appuyant sur ce graphique, nous pouvons observer qu'une auto-corrélation significative est présente pour les lags 1 à 3, 5, 7 et 12 par exemple.
+
+### Test de Durbin-Watson
+
+Afin d'aller plus loin et de détecter une éventuelle auto-corrélation des erreurs d'ordre 1 (lag = 1), il est possible d'emloyer **le test de Durbin-Watson**.
+
+L'intérêt d'avoir recours à ce test est de déterminer si le modèle est perfectible. Souvent, l’autocorrélation s’observe sur les résidus d’une modélisation de série chronologique. Toutefois, si le type de modèle est bien choisi (en l'occurrence une régrassion linéaire simple), il peut exister une véritable autocorrélation entre les observations. En revanche, si aucune autocorrélation n'a de raison d'être, il faut chercher d’autres variables candidates.
 
 ```{r durbinWatson_edu}
 durbinWatsonTest(lin_model_edu)
 ```
-Ici, le test nous indique qu’il existe une auto-corrélation significative entre les résidus d’une ligne du tableau de données et ceux de la ligne suivante. Cela signifie qu'a moins que certain residut agissent par groupe, le test rejette le lien linéaire entre les deux variables.
+
+Le test de Durbin-Watson indique qu’il existe une auto-corrélation significative entre les résidus d’une ligne du tableau de données et ceux de la ligne suivante.
 
 <br />
 
-## Distribution par loi normale
+## Normalité
 
-<br />
+### Visualisation
 
-Ensuite on verifie donc que les résidut sont distribués selon une loi Normale de moyenne 0. Cette hypothèse peut s’évaluer graphiquement à l’aide d’un QQplot. Si les résidus sont bien distribués le long de la droite figurant sur le plot, alors l’hypothèse de normalité est acceptée.
+La deuxième condition susmentionnée concerne la distribution des résidus selon une loi Normale de moyenne 0. La pertinence de l'ajustement d'une distribution donnée à un modèle peut être représentée graphiquement grâce à un diagramme quantile-quantile, ou *QQ plot*.
+
 ```{r qq_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 qq_edu <- lin_model_edu %>%
   ggplot(aes(sample = rstandard(.))) +
@@ -306,12 +312,22 @@ qq_edu <- lin_model_edu %>%
 qq_edu <- ggplotly(qq_edu)
 qq_edu
 ```
-Le test de Shapiro-Wilk peut également être employé pour évaluer la normalité des résidus. L’hypothèse de normalité est rejetée si la p-value est inférieure à 0.05.
+
+Nous constatons que les résidus sont relativement bien alignés le long de la droite figurant sur le graphique, nous pouvons donc en conclure que la distribution de cette série de données suit une loi normale.
+
+### Test de Shapiro-Wilk
+
+En statistiques, le **test de Shapiro–Wilk** teste l'hypothèse nulle selon laquelle un échantillon de données est issu d'une population normalement distribuée. Ce test peut être employé afin d'évaluer l'hypothèse de normalité des résidus.
 
 ```{r shapiro_edu}
 shapiro.test(residuals(lin_model_edu))
 ```
+
+On considère que cette hypothèse est rejetée si la p-valeur est inférieure à $0,05$, mais dans le cas présent le test accepte la normalité.
+
 <br />
+
+Il est essentiel d'appliquer des tests statistiques tels que celui de Shapiro-Wilk. Un exemple parlant serait celui d'une régression linéaire simple entres les variables *income* et *prestige*.
 
 ```{r lin_model_inc}
 lin_model_inc <- lm(prestige~income, data = data)
@@ -337,20 +353,26 @@ qq_inc <- ggplotly(qq_inc)
 qq_inc
 ```
 
-<br />
-
-## Distribution de facons homogéne
+L'alignement des résidus est légèrement moins précis que sur le **QQ plot** entre les variables *education* et *prestige*, mais il semble plutôt satisfaisant. On ne constaste aucune valeur aberrante.
 
 ```{r shapiro_inc}
 shapiro.test(residuals(lin_model_inc))
 ```
 
-
-## Distribution de facons homogéne
+Cependant, le test de Shapiro-Wilk renvoie une p-valeur inférieure à $0,05$ et rejette donc l'hypothèse de normalité.
 
 <br />
 
-Enfin nous testons que les residus sont distribués de façon homogènes. pour cela il faut réaliser un “residuals vs fitted plot”. Les “fitted” correspondent aux réponses prédites par le modèle, pour les valeurs observées de la variable prédicitive.
+## Homoscédasticité
+
+### Visualisation
+
+Enfin, le concept d'homoscédasticité est utilisé dans le contexte de la régression linéaire pour décrire le cas où la variance des erreurs du modèle est la même pour toutes les observations. Autrement dit, les variances sont homogènes et les erreurs identiquement distribuées. Il s'agit de l'une des propriétés fondamentales du modèle de régression linéaire.
+
+Afin de visualiser cela, nous avons besoin des valeurs prédites par le modèle (*fitted values*).
+
+Dans notre cas, le graphique représentera les valeurs de *prestige* prédite par le modèle pour les valeurs de *education* présentes dans les données.
+
 ```{r sc_loc_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 sc_loc_edu <- lin_model_edu %>%
   ggplot(aes(fitted(.), sqrt(abs(rstandard(.))))) + 
@@ -371,19 +393,27 @@ sc_loc_edu <- lin_model_edu %>%
 sc_loc_edu <- ggplotly(sc_loc_edu)
 sc_loc_edu
 ```
-La courbe rouge, qui est aussi une courbe de régression locale, est globalement plate. Ceci montre que les résidus ont tendance à être répartis de façon homogène tout le long du gradient des valeurs de prestige prédites. Et donc que l’hypothèse d’homogénéité des résidus est acceptée.
 
-Il est également possible d’évaluer cette hypothèse en employant le test de Breush-Pagan. L’hypothèse d’homogénéité est rejetée si la p-value est inférieure à 0.05.
+Le graphique nous montre que les résidus sont répartis de façon homogène le long du gradient des valeurs prédites. Ceci est mis en évidence par la courbe de régression locale qui est quasiment plate.
+
+### Test de Breusch-Pagan
+
+**Le test de Breusch-Pagan** permet de tester l'hypothèse d'homoscédasticité du terme d'erreur d'un modèle de régression linéaire. Si la variance est constante, alors on a de l'homoscédasticité ; en revanche, si elle va varie, on a de l'hétéroscédasticité.
+
 ```{r ncv_test}
 ncvTest(lin_model_edu)
 ```
-Ici, le test ne rejette pas non plus l’hypothèse d’homogénéité.
+
+La p-valeur associée au test est supérieure au seuil de $0.05$, ainsi l'hypothèse d'homoscédasticité est acceptée.
 
 <br />
 
-## Hypothése de linéarité
+## Linéarité
 
-Il existe aussi la possibilité de directement tester la linéarité à l'aide du plot suivant.
+### Visualisation
+
+Afin de vérifier l'hypothèse selon laquelle la relation entre les variables *education* et *prestige* est linéaire, ainsi que l'homoscédasticité, il est possible de générer un *residuals vs. fitted plot*.
+
 ```{r res_v_fit, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 res_v_fit_edu <- lin_model_edu %>%
   ggplot(aes(fitted(.), residuals(.))) + 
@@ -405,12 +435,17 @@ res_v_fit_edu <- lin_model_edu %>%
 res_v_fit_edu <- ggplotly(res_v_fit_edu)
 res_v_fit_edu
 ```
-Ceci nous montre que lorsque les réponses prédites par le modèle (fitted values) augmentent, les résidus restent globalement uniformément distribués de part et d’autre de 0. Cela montre, qu’en moyenne, la droite de régression, est bien adaptée aux données, et donc que l’hypothèse de linéarité est acceptable.
+
+Il n'y a pas de schéma clair dans les données, ni d'aberrations évidentes. Les résidus sont, à peu de choses près, uniformément distribués le long de la ligne 0. La droite de régression est bien adaptée aux données, par conséquent l’hypothèse de linéarité est acceptable.
 
 <br />
 
-# **Interpretation des resultats**
-Si les hypothèses de linéarité, de normalité, d’homogénéité et d’indépendance des résidus sont satisfaites, alors les résultats de la régression sont valides, et on peut donc les interpréter à l'aide de la fonction summary.
+# **Interprétation des résultats**
+
+En s'appuyant sur les différentes représentations graphiques ainsi que les tests effectués précédémment, on peut en conclure que les propriétés fondamentales de la régression linéaire (indépendance des résidus, normalité, homoscédasticité et linéarité) sont satisfaites.
+
+Partant de ce postulat, les résultats de la régression linéaire entre les variables *education* et *prestige* peuvent être interprétés.
+
 ```{r summ_model}
 summary(lin_model_edu)
 ```
@@ -419,10 +454,14 @@ summary(lin_model_edu)
 confint(lin_model_edu) %>% kable()
 ```
 
+# **Prédictions**
+
 ```{r preds}
 predictions <- tibble(education=c(9.21, 11.07, 14.62))
 predict(lin_model_edu, newdata = predictions, interval = "confidence") %>% kable()
 ```
+
+# **Visualisation des composants**
 
 ```{r add_res}
 data$residuals <- residuals(lin_model_edu)
@@ -438,10 +477,15 @@ head(data) %>% kable()
 vcov(lin_model_edu) %>% kable()
 ```
 
+# **Régression linéaire**
+
 ```{r add_pred_intervals, message=FALSE, warning=FALSE}
 pred_interval <- predict(lin_model_edu, interval = "prediction")
 data <- cbind(data, pred_interval)
 ```
+
+
+En statistiques et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
 
 ```{r lin_regression, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 linear_regression <- data %>% 
