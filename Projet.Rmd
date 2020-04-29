@@ -450,18 +450,31 @@ Partant de ce postulat, les résultats de la régression linéaire entre les var
 summary(lin_model_edu)
 ```
 
+La fonction Summary nous permet d'avoir un bon apercus de ses resultats en nous donnant deux elements. Nous avons dans la première partie nomée Residuals, la norme des residus (min, max, quartile et mediane).
+Dnas la seconde partie Coefficients nous avons deux lignes. La première ligne de la partie coefficients concerne l’ordonnée à l’origine, alors que la seconde ligne concerne la pente. Le plus important ici est le coefficient de la pente égal à 5.361.
+
+<br />
+
+## Intervale de confiance
+
+La fonction “confint” permet d’obtenir facilement ces intervalles de confiance. Ils sont basés sur la loi de Student.
 ```{r confint_model}
 confint(lin_model_edu) %>% kable()
 ```
+l’intervalle de confiance à 97.5% de la pente est une étendue de valeurs qui a une probabilité de 97.5% de contenir la vraie pente.
 
-# **Prédictions**
+<br />
+
+## Prédictions
 
 ```{r preds}
 predictions <- tibble(education=c(9.21, 11.07, 14.62))
 predict(lin_model_edu, newdata = predictions, interval = "confidence") %>% kable()
 ```
 
-# **Visualisation des composants**
+<br />
+
+## Visualisation des composants
 
 ```{r add_res}
 data$residuals <- residuals(lin_model_edu)
@@ -477,15 +490,14 @@ head(data) %>% kable()
 vcov(lin_model_edu) %>% kable()
 ```
 
-# **Régression linéaire**
+<br />
+
+# **Représentation finale de la régression**
 
 ```{r add_pred_intervals, message=FALSE, warning=FALSE}
 pred_interval <- predict(lin_model_edu, interval = "prediction")
 data <- cbind(data, pred_interval)
 ```
-
-
-En statistiques et en apprentissage automatique, un modèle de régression linéaire est un modèle de régression qui cherche à établir une relation linéaire entre une variable, dite expliquée, et une ou plusieurs variables, dites explicatives.
 
 ```{r lin_regression, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 linear_regression <- data %>% 
@@ -512,6 +524,20 @@ linear_regression <- ggplotly(linear_regression)
 linear_regression
 ```
 
-******
+<br />
+
+# **Bilan**
+
+<br />
+
+Le modèle de régression linéaire est aussi bien utilisé pour chercher à prédire un phénomène que pour chercher à l'expliquer. Après avoir estimé un modèle de régression linéaire, on peut prédire quel serait le niveau de y pour des valeurs particulières de x. Il permet également d'estimer l'effet d'une ou plusieurs variables sur une autre en contrôlant par un ensemble de facteurs. En apprentissage statistique, la méthode de régression linéaire est considérée comme une méthode d'apprentissage supervisé utilisée pour prédire une variable quantitative. Dans cette perspective, on entraîne généralement le modèle sur un échantillon d'apprentissage et on teste ensuite les performances prédictives du modèle sur un échantillon de test. 
+
+<br />
+
+Ce projet a été réalisé dans le cadre du cours de statistiques appliquées. Celui-ci convoque des connaissances en statistiques acquise plus tot cette année et fait le lien avec notre module d'apprentissage supervisé. En effet afin de concevoir nos systèmes prévisionnels, comprendre comment les relations entre les variables d'un jeu de donnée peuvent être étudier est une étape primordial. Il a été l’occasion pour nous, étudiants, de consolider nos compétences en analyse et manipulation de données, puis d'en acquérir de nouvelles par le biais de ce projet.
+
+<br />
+<br />
+<br />
 
 </body>
