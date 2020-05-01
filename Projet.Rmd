@@ -151,6 +151,7 @@ viz_census <- ggplotly(viz_census)
 subplot(viz_edu, viz_inc, viz_women, viz_census, nrows = 2, margin = 0.07)
 ```
 
+<br />
 Dans un premier temps, nous pouvons observer une forte relation linéaire entre *prestige* et les variables *education* et *income*, contrairement à *women* et *census*.
 
 Dans un second temps, nous pouvons étudier d'éventuelles corrélations entre deux variables à l'aide d'un nuage de points. Ici, nous utilisons la fonction *ggpairs* afin de pouvoir en observer plusieurs en même temps.
@@ -167,10 +168,11 @@ scatterM <- data %>% ggpairs(columns = 1:5, lower = list(continuous = generate_s
 scatterM <- ggplotly(scatterM)
 scatterM
 ```
+
 <br />
 Avec les observations précédentes, nous pouvons déjà écarter certaines linéarités et choisir lesquelles sont intéressantes à étudier. Ici, nous reprenons donc la relation entre la variable *prestige* (il s’agit d’un score de prestige relatif à la profession) et la variable *education* (qui reflète le niveau d’étude). Cette fois nous utilisons *ggplot2* pour une meilleure représentation.
 <br />
-<br />
+
 ```{r education, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 education <- data %>% 
   ggplot(aes(x = education, y = prestige)) +
@@ -217,6 +219,7 @@ scatter_inc <- ggplotly(income)
 scatter_inc
 ```
 
+<br />
 Ici, en regardant la forme du lien entre la variable entre les deux variables, on s’aperçoit que la droite de régression suis bien moins l’intervalle de confiance de la courbe lowess. l’hypothèse de linéarité est alors plus critiquable.
 
 Pour déterminer la droite de régression, on ajuste un modèle linéaire simple aux données, à l’aide de la fonction « lm ».
@@ -231,6 +234,8 @@ lin_model_edu
 L’équation, de notre droite est donc $y = -10.732 + 5.361x$.
 
 <br />
+
+******
 
 # **Évaluation des résultats**
 
@@ -262,6 +267,7 @@ lag_plot <- ggplotly(lag_plot, tooltip = c("lag", "acf"))
 lag_plot
 ```
 
+<br />
 Sur le graphique ci-dessus, chaque trait correspond à un *lag*, ou coefficient de corrélation entre les résidus de chaque point, les pointillés bleus quant à eux sont les intervalles de confiance du coefficient de corrélation égale à 0.
 
 En s'appuyant sur ce graphique, nous pouvons observer qu'une auto-corrélation significative est présente pour les lags 1 à 3, 5, 7 et 12 par exemple.
@@ -309,6 +315,7 @@ qq_edu <- ggplotly(qq_edu)
 qq_edu
 ```
 
+<br />
 Nous constatons que les résidus sont relativement bien alignés le long de la droite figurant sur le graphique, nous pouvons donc en conclure que la distribution de cette série de données suit une loi normale.
 
 <br />
@@ -351,6 +358,7 @@ qq_inc <- ggplotly(qq_inc)
 qq_inc
 ```
 
+<br />
 L'alignement des résidus est légèrement moins précis que sur le *QQ plot* entre les variables *education* et *prestige*, mais il semble plutôt satisfaisant. On ne constaste aucune valeur aberrante.
 
 ```{r shapiro_inc}
@@ -392,6 +400,7 @@ sc_loc_edu <- ggplotly(sc_loc_edu)
 sc_loc_edu
 ```
 
+<br />
 Le graphique nous montre que les résidus sont répartis de façon homogène le long du gradient des valeurs prédites. Ceci est mis en évidence par la courbe de régression locale qui est quasiment plate.
 
 <br />
@@ -436,9 +445,12 @@ res_v_fit_edu <- ggplotly(res_v_fit_edu)
 res_v_fit_edu
 ```
 
+<br />
 Il n'y a pas de schéma clair dans les données, ni d'aberrations évidentes. Les résidus sont, à peu de choses près, uniformément distribués le long de la ligne 0. La droite de régression est bien adaptée aux données, par conséquent l’hypothèse de linéarité est acceptable.
 
 <br />
+
+******
 
 # **Interprétation des résultats**
 
@@ -521,6 +533,8 @@ Ici, nous avons réalisé des prédictions pour différents niveaux d'éducation
 
 <br />
 
+******
+
 # **Régression linéaire finale**
 
 ```{r add_pred_intervals, message=FALSE, warning=FALSE}
@@ -554,6 +568,8 @@ linear_regression
 ```
 
 <br />
+
+******
 
 # **Bilan du projet**
 
