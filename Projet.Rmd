@@ -35,7 +35,7 @@ body {
 
 Dans le cadre du module de statistiques appliquées, nous avions abordé les bases des statistiques et pris en main des outils permettant d'effectuer des opérations statistiques avancées grâce au langage R. Ainsi, notre choix s'est porté sur des données statistiques relatives au prestige (score attribuée) de différentes professions canadiennes.
 
-Ce projet de statistiques appliquées consiste en l'utilisation d'outils R adaptés afin d'effectuer une modélisation statistique sur notre jeu de données et produire un rapport.
+Ce projet de statistiques appliquées consiste en l'utilisation d'outils R adaptés afin d'effectuer une modélisation statistique sur notre jeu de données, d'etudier la coréalation entre des variables en effectuant une ou plusieurs regréssion linéaire et produire un rapport.
 
 <br />
 
@@ -89,11 +89,11 @@ library(car)
 
 Notre [jeu de données](https://github.com/selva86/datasets/blob/master/Prestige.csv) comporte 102 individus décrits par 6 variables :
 
-* education : Nombre moyen d'années d'études des titulaires de postes, en 1971 ;
-* income : Le revenu moyen des titulaires de postes, en dollars, en 1971 ;
-* women : pourcentage de femmes dans la profession ; 
-* prestige : Score de prestige Pineo-Porter pour la profession, d'après une enquête sociale réalisée au milieu des années 60 ;
-* census : Le code de classification nationale de chaque profession ;
+* education : Nombre moyen d'années d'études des titulaires de postes, en 1971.
+* income : Le revenu moyen des titulaires de postes, en dollars, en 1971.
+* women : pourcentage de femmes dans la profession .
+* prestige : Score de prestige Pineo-Porter pour la profession, d'après une enquête sociale réalisée au milieu des années 60
+* census : Le code de classification nationale de chaque profession.
 * type : Type de profession. Mangériale et technique (prof), col blanc (wc), col bleu (bc).
 
 ```{r datasets, include=FALSE}
@@ -175,9 +175,10 @@ scatterM <- data %>% ggpairs(columns = 1:5, lower = list(continuous = generate_s
 scatterM <- ggplotly(scatterM)
 scatterM
 ```
-
+<br />
 Avec les observations précédentes, nous pouvons déjà écarter certaines linéarités et choisir lesquelles sont intéressantes à étudier. Ici, nous reprenons donc la relation entre la variable *prestige* (il s’agit d’un score de prestige relatif à la profession) et la variable *education* (qui reflète le niveau d’étude). Cette fois nous utilisons *ggplot2* pour une meilleure représentation.
-
+<br />
+<br />
 ```{r education, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 education <- data %>% 
   ggplot(aes(x = education, y = prestige)) +
@@ -273,6 +274,8 @@ Sur le graphique ci-dessus, chaque trait correspond à un *lag*, ou coefficient 
 
 En s'appuyant sur ce graphique, nous pouvons observer qu'une auto-corrélation significative est présente pour les lags 1 à 3, 5, 7 et 12 par exemple.
 
+<br />
+
 ### Test de Durbin-Watson
 
 Afin d'aller plus loin et de détecter une éventuelle auto-corrélation des erreurs d'ordre 1 (lag = 1), il est possible d'emloyer **le test de Durbin-Watson**.
@@ -314,6 +317,8 @@ qq_edu
 ```
 
 Nous constatons que les résidus sont relativement bien alignés le long de la droite figurant sur le graphique, nous pouvons donc en conclure que la distribution de cette série de données suit une loi normale.
+
+<br />
 
 ### Test de Shapiro-Wilk
 
@@ -396,6 +401,8 @@ sc_loc_edu
 
 Le graphique nous montre que les résidus sont répartis de façon homogène le long du gradient des valeurs prédites. Ceci est mis en évidence par la courbe de régression locale qui est quasiment plate.
 
+<br />
+
 ### Test de Breusch-Pagan
 
 **Le test de Breusch-Pagan** permet de tester l'hypothèse d'homoscédasticité du terme d'erreur d'un modèle de régression linéaire. Si la variance est constante, alors on a de l'homoscédasticité ; en revanche, si elle va varie, on a de l'hétéroscédasticité.
@@ -450,14 +457,13 @@ Partant de ce postulat, les résultats de la régression linéaire entre les var
 summary(lin_model_edu)
 ```
 
-La fonction Summary nous permet d'avoir un bon apercus de ses resultats en nous donnant deux elements. Nous avons dans la première partie nomée Residuals, la norme des residus (min, max, quartile et mediane).
-Dnas la seconde partie Coefficients nous avons deux lignes. La première ligne de la partie coefficients concerne l’ordonnée à l’origine, alors que la seconde ligne concerne la pente. Le plus important ici est le coefficient de la pente égal à 5.361.
+La fonction Summary nous permet d'avoir un bon apercus de ses resultats. Nous avons dans la première partie nomée Residuals, la norme des residus (min, max, quartile et mediane). La seconde partie nomée Coefficients est un tableau à deux ligne. La première ligne concerne l’ordonnée à l’origine, alors que la seconde concerne la pente. Le plus important dans notre cas est le coefficient de la pente égal à 5.361. Cela signifie que lorsque le niveau d’éducation augmente d’une unité, alors, le niveau du score de prestige augmente de 5.361 unités.
 
 <br />
 
 ## Intervale de confiance
 
-La fonction “confint” permet d’obtenir facilement ces intervalles de confiance. Ils sont basés sur la loi de Student.
+La fonction “confint” permet d’obtenir facilement l'intervalles de confiance des coefficients des paramètres. Cette fonction est basés sur la loi de Student.
 ```{r confint_model}
 confint(lin_model_edu) %>% kable()
 ```
@@ -467,6 +473,7 @@ l’intervalle de confiance à 97.5% de la pente est une étendue de valeurs qui
 
 ## Prédictions
 
+On peut donc maintenant obtenir la réponse prédite par le modèle de régression, pour une valeur spécifique de la variable prédictive, qui n’a pas été observée. Par exemple, imaginons que je souhaite obtenir le score de prestige prédit par le modèle, pour un niveau d’éducation de 10.25, qui n’a pas été observé. Pour cela, il est nécessaire de créer un data frame contenant une variable éducation, avec les valeurs souhaitées. Ce nouveau data frame est ensuite passé dans l’argument “newdata” de la fonction “predict”.
 ```{r preds}
 predictions <- tibble(education=c(9.21, 11.07, 14.62))
 predict(lin_model_edu, newdata = predictions, interval = "confidence") %>% kable()
@@ -476,16 +483,23 @@ predict(lin_model_edu, newdata = predictions, interval = "confidence") %>% kable
 
 ## Visualisation des composants
 
+<br />
+
+Comme déjà vu, précédemment, les résidus de la régression peuvent être obtenus avec la fonction “‘residuals”.
 ```{r add_res}
 data$residuals <- residuals(lin_model_edu)
 head(data) %>% kable()
 ```
+<br />
 
+Les fitted, correspondent, aux prédictions du modèle de régression, mais pour les valeurs observées de la variable prédictive :
 ```{r add_fitted}
 data$fitted <- fitted(lin_model_edu)
 head(data) %>% kable()
 ```
+<br />
 
+La matrice de variance-covariance des paramètres du modèle peut s’obtenir avec la fonction “vcov” :
 ```{r covariance}
 vcov(lin_model_edu) %>% kable()
 ```
