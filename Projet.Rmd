@@ -219,7 +219,7 @@ scatter_inc
 
 Ici, en regardant la forme du lien entre la variable entre les deux variables, on s’aperçoit que la droite de régression suis bien moins l’intervalle de confiance de la courbe lowess. l’hypothèse de linéarité est alors plus critiquable.
 
-Pour déterminer la droite de régression, on ajuste un modèle linéaire simple aux données, à l’aide de la fonction “lm”.
+Pour déterminer la droite de régression, on ajuste un modèle linéaire simple aux données, à l’aide de la fonction « lm ».
 
 ```{r lin_model_edu}
 lin_model_edu <- lm(prestige ~ education, data = data)
@@ -278,6 +278,7 @@ L'intérêt d'avoir recours à ce test est de déterminer si le modèle est perf
 durbinWatsonTest(lin_model_edu)
 ```
 
+<br />
 Le test de Durbin-Watson indique qu’il existe une auto-corrélation significative entre les résidus d’une ligne du tableau de données et ceux de la ligne suivante.
 
 <br />
@@ -362,9 +363,9 @@ Cependant, le test de Shapiro-Wilk renvoie une p-valeur inférieure à $0,05$ et
 
 ## Homoscédasticité
 
-### Visualisation
+Le concept d'homoscédasticité est utilisé dans le contexte de la régression linéaire pour décrire le cas où la variance des erreurs du modèle est la même pour toutes les observations. Autrement dit, les variances sont homogènes et les erreurs identiquement distribuées. Il s'agit de l'une des propriétés fondamentales du modèle de régression linéaire.
 
-Enfin, le concept d'homoscédasticité est utilisé dans le contexte de la régression linéaire pour décrire le cas où la variance des erreurs du modèle est la même pour toutes les observations. Autrement dit, les variances sont homogènes et les erreurs identiquement distribuées. Il s'agit de l'une des propriétés fondamentales du modèle de régression linéaire.
+### Visualisation
 
 Afin de visualiser cela, nous avons besoin des valeurs prédites par le modèle (*fitted values*).
 
@@ -453,6 +454,7 @@ La fonction *summary* nous permet d'avoir un bon aperçu du modèle. Elle affche
 summary(lin_model_edu)
 ```
 
+<br />
 La vue du modèle est divisée en 2 grandes parties : **Residuals** et **Coefficients**.
 
 ## Norme des résidus
@@ -505,7 +507,7 @@ vcov(lin_model_edu) %>% kable()
 
 <br />
 
-## Prédiction multiples
+## Prédictions multiples
 
 Nous pouvons obtenir des réponses prédites par le modèle de régression, pour des valeurs de la variable prédictive n'ayant pas encore été observées.
 
@@ -514,6 +516,7 @@ predictions <- tibble(education=c(9.21, 11.07, 14.62))
 predict(lin_model_edu, newdata = predictions, interval = "confidence") %>% kable()
 ```
 
+<br />
 Ici, nous avons réalisé des prédictions pour différents niveaux d'éducation, respectivement $9.21$, $11.07$ et $14.62$ choisis arbitrairement.
 
 <br />
@@ -552,9 +555,7 @@ linear_regression
 
 <br />
 
-# **Bilan**
-
-<br />
+# **Bilan du projet**
 
 Le modèle de régression linéaire est aussi bien utilisé pour chercher à prédire un phénomène que pour chercher à l'expliquer. Après avoir estimé un modèle de régression linéaire, nous pouvons prédire quel serait le niveau de *y* pour des valeurs particulières de *x*. Il permet également d'estimer l'effet d'une ou plusieurs variables sur une autre en contrôlant par un ensemble de facteurs. En apprentissage statistique, la méthode de régression linéaire est considérée comme une méthode d'apprentissage supervisé utilisée pour prédire une variable quantitative. Dans cette perspective, nous entraînons généralement le modèle sur un échantillon d'apprentissage et testons ensuite les performances prédictives du modèle sur un échantillon de test. 
 
