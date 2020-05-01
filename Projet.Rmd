@@ -148,7 +148,7 @@ viz_census <- data %>%
   
 viz_census <- ggplotly(viz_census)
 
-subplot(viz_edu, viz_inc, viz_women, viz_census, nrows = 2, margin = 0.07)
+subplot(style(viz_edu, showlegend = FALSE), style(viz_inc, showlegend = FALSE), style(viz_women, showlegend = FALSE), viz_census, nrows = 2, margin = 0.07)
 ```
 
 <br />
