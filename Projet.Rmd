@@ -15,7 +15,7 @@ editor_options:
 <style>
 body {
   text-align: justify;
-  font-size: 12pt;
+  font-size: 14pt;
 }
 </style>
 
@@ -447,16 +447,6 @@ Partant de ce postulat, les résultats de la régression linéaire entre les var
 
 <br />
 
-## Intervalle de confiance
-
-La fonction *confint* permet d’obtenir l'intervalle de confiance à 95% pour les coefficients estimés. Cette fonction repose sur la loi de Student, ainsi l'hypothèse de normalité des résidus doit être acceptable afin que ceux-ci soient pertinents.
-
-```{r confint_model}
-confint(lin_model_edu) %>% kable()
-```
-
-<br />
-
 La fonction *summary* nous permet d'avoir un bon aperçu du modèle. Elle affche les coefficients estimés, leur écart-type, et la valeur de la statistique *t* de Student ainsi que la p-valeur (probabilité que le coefficient soit significativement différent de zéro) associées à chaque coefficient. Sont aussi présentés le R2 et R2 ajusté, ainsi que la statistique F de Fisher (testant la significativité globale des variables), son degré de liberté, et la p-valeur associée.
 
 ```{r summ_model}
@@ -473,7 +463,7 @@ Dans la première partie, nous avons la norme des résidus. Nous remarquons que 
 
 La seconde partie *Coefficients* est un tableau à deux lignes. Nous nous intéressons d'abord aux deux dernières colonnes. La valeur absolue de *t* calculée est bien supérieure à la valeur théorique déterminée, alors on rejette H0. Par conséquent, le coefficient est significativement différent de zéro et il est interprétable.
 
-Dans le cas d'un modèle linéaire, le signe du coefficient associé à une variable indique le sens de l'effet de cette variable sur celle à expliquer. Sur la première colonne, le coefficient de la pente pour *education* est de $5.361$, par conséquent augmenter le niveau d'éducation aura tendance à augmenter le score de prestige. Pour une unité supplémentaire concernant le niveau d'éducation, le prestige augmente de $5.361*$ unités (= coefficient de la pente).
+Dans le cas d'un modèle linéaire, le signe du coefficient associé à une variable indique le sens de l'effet de cette variable sur celle à expliquer. Sur la première colonne, le coefficient de la pente pour *education* est de $5.361$, par conséquent augmenter le niveau d'éducation aura tendance à augmenter le score de prestige. Pour une unité supplémentaire concernant le niveau d'éducation, le prestige augmente de $5.361$ unités (= coefficient de la pente).
 
 ## Qualité du modèle
 
@@ -572,8 +562,8 @@ Le modèle de régression linéaire est aussi bien utilisé pour chercher à pr�
 
 Enfin, le projet a été réalisé dans le cadre du cours de statistiques appliquées. Celui-ci convoque des notions en statistiques abordées durant cette année et fait le lien avec notre module d'apprentissage supervisé. Afin de concevoir nos systèmes prévisionnels, comprendre et interpréter les effets ou relations entre plusieurs variables d'un jeu de données est essentiel.
 
-<br />
 ******
+
 <br />
 
 </body>
