@@ -23,19 +23,11 @@ body {
 
 ******
 
-<center>
-**↓↓ Accès au projet ↓↓**
-<br />
-[Lien GitHub du projet](https://github.com/Antoine553/INFO0806)
-</center>
-
-******
-
 # **Introduction**
 
 Dans le cadre du module de statistiques appliquées, nous avions abordé les bases des statistiques et pris en main des outils permettant d'effectuer des opérations statistiques avancées grâce au langage R. Ainsi, notre choix s'est porté sur des données statistiques relatives au prestige (score attribuée) de différentes professions canadiennes.
 
-Ce projet de statistiques appliquées consiste en l'utilisation d'outils R adaptés afin d'effectuer une modélisation statistique sur notre jeu de données, d'etudier la coréalation entre des variables en effectuant une ou plusieurs regréssion linéaire et produire un rapport.
+Ce projet de statistiques appliquées consiste en l'utilisation d'outils R adaptés afin d'effectuer une modélisation statistique sur notre jeu de données, d'étudier la relation entre plusieurs variables en effectuant une régression linéaire simple ou multiple, ainsi que produire un rapport.
 
 <br />
 
@@ -52,7 +44,7 @@ La fonction principale de RStudio consiste à faciliter le développement d'appl
 
 <br />
 
-## R markdown
+## R Markdown
 
 L’extension R markdown permet de générer des documents de manière dynamique en mélangeant texte mis en forme et résultats produits par du code R. Les documents générés peuvent être au format HTML, PDF, Word, et bien d’autres. C’est donc un outil très pratique pour l’exportation, la communication et la diffusion de résultats d’analyse.
 
@@ -89,11 +81,11 @@ library(car)
 
 Notre [jeu de données](https://github.com/selva86/datasets/blob/master/Prestige.csv) comporte 102 individus décrits par 6 variables :
 
-* education : Nombre moyen d'années d'études des titulaires de postes, en 1971.
-* income : Le revenu moyen des titulaires de postes, en dollars, en 1971.
-* women : pourcentage de femmes dans la profession .
-* prestige : Score de prestige Pineo-Porter pour la profession, d'après une enquête sociale réalisée au milieu des années 60
-* census : Le code de classification nationale de chaque profession.
+* education : Nombre moyen d'années d'études des titulaires de postes, en 1971 ;
+* income : Le revenu moyen des titulaires de postes, en dollars, en 1971 ;
+* women : pourcentage de femmes dans la profession ;
+* prestige : Score de prestige Pineo-Porter pour la profession, d'après une enquête sociale réalisée au milieu des années 60 ;
+* census : Le code de classification nationale de chaque profession ;
 * type : Type de profession. Mangériale et technique (prof), col blanc (wc), col bleu (bc).
 
 ```{r datasets, include=FALSE}
@@ -358,7 +350,7 @@ qq_inc <- ggplotly(qq_inc)
 qq_inc
 ```
 
-L'alignement des résidus est légèrement moins précis que sur le **QQ plot** entre les variables *education* et *prestige*, mais il semble plutôt satisfaisant. On ne constaste aucune valeur aberrante.
+L'alignement des résidus est légèrement moins précis que sur le *QQ plot* entre les variables *education* et *prestige*, mais il semble plutôt satisfaisant. On ne constaste aucune valeur aberrante.
 
 ```{r shapiro_inc}
 shapiro.test(residuals(lin_model_inc))
@@ -453,60 +445,90 @@ En s'appuyant sur les différentes représentations graphiques ainsi que les tes
 
 Partant de ce postulat, les résultats de la régression linéaire entre les variables *education* et *prestige* peuvent être interprétés.
 
+<br />
+
+## Intervalle de confiance
+
+La fonction *confint* permet d’obtenir l'intervalle de confiance à 95% pour les coefficients estimés. Cette fonction repose sur la loi de Student, ainsi l'hypothèse de normalité des résidus doit être acceptable afin que ceux-ci soient pertinents.
+
+```{r confint_model}
+confint(lin_model_edu) %>% kable()
+```
+
+<br />
+
+La fonction *summary* nous permet d'avoir un bon aperçu du modèle. Elle affche les coefficients estimés, leur écart-type, et la valeur de la statistique *t* de Student ainsi que la p-valeur (probabilité que le coefficient soit significativement différent de zéro) associées à chaque coefficient. Sont aussi présentés le R2 et R2 ajusté, ainsi que la statistique F de Fisher (testant la significativité globale des variables), son degré de liberté, et la p-valeur associée.
+
 ```{r summ_model}
 summary(lin_model_edu)
 ```
 
-La fonction Summary nous permet d'avoir un bon apercus de ses resultats. Nous avons dans la première partie nomée Residuals, la norme des residus (min, max, quartile et mediane). La seconde partie nomée Coefficients est un tableau à deux ligne. La première ligne concerne l’ordonnée à l’origine, alors que la seconde concerne la pente. Le plus important dans notre cas est le coefficient de la pente égal à 5.361. Cela signifie que lorsque le niveau d’éducation augmente d’une unité, alors, le niveau du score de prestige augmente de 5.361 unités.
+La vue du modèle est divisée en 2 grandes parties : **Residuals** et **Coefficients**.
+
+## Norme des résidus
+
+Dans la première partie, nous avons la norme des résidus. Nous remarquons que la médiane est proche de 0, et que les valeurs absolues des 1er et 3e quartiles (1Q et 3Q) sont très proches. Cela porte à croire que les résidus sont distribués selon une Normale, ce qui est le cas au vu des résultats précédemment obtenus.
+
+## Coefficients
+
+La seconde partie *Coefficients* est un tableau à deux lignes. Nous nous intéressons d'abord aux deux dernières colonnes. La valeur absolue de *t* calculée est bien supérieure à la valeur théorique déterminée, alors on rejette H0. Par conséquent, le coefficient est significativement différent de zéro et il est interprétable.
+
+Dans le cas d'un modèle linéaire, le signe du coefficient associé à une variable indique le sens de l'effet de cette variable sur celle à expliquer. Sur la première colonne, le coefficient de la pente pour *education* est de $5.361$, par conséquent augmenter le niveau d'éducation aura tendance à augmenter le score de prestige. Pour une unité supplémentaire concernant le niveau d'éducation, le prestige augmente de $5.361*$ unités (= coefficient de la pente).
+
+## Qualité du modèle
+
+La qualité de la prédiction d'une régression linéaire est mesurée par le coefficient de détermination R2. Plus il est proche de 1, et plus le rapport de convenance entre le modèle et les données est fort.
+Toutefois, ce coefficient R2 coît significativement avec avec le nombre de variables explicatives, c'est ici que le R2 ajusté intervient. En effet, il tient compte du nombre de variables et fournira une valeur plus pertinente.
+
+Notre modèle correspond à une régression linéaire simple, donc les coefficients R2 et R2 ajusté sont très proches. L'un comme l'autre constitue une valeur pertinente. En s'appuyant sur l'avant dernière ligne, nous constatons qu'il est approximativement de $0.72$, ce qui atteste d'un modèle fiable.
+
+De plus, sur la dernière ligne la p-valeur est très basse et inférieure à $0.05$, ainsi le lien linéaire entre les variables *education* et *prestige* est significatif.
 
 <br />
 
-## Intervale de confiance
-
-La fonction “confint” permet d’obtenir facilement l'intervalles de confiance des coefficients des paramètres. Cette fonction est basés sur la loi de Student.
-```{r confint_model}
-confint(lin_model_edu) %>% kable()
-```
-l’intervalle de confiance à 97.5% de la pente est une étendue de valeurs qui a une probabilité de 97.5% de contenir la vraie pente.
-
-<br />
-
-## Prédictions
-
-On peut donc maintenant obtenir la réponse prédite par le modèle de régression, pour une valeur spécifique de la variable prédictive, qui n’a pas été observée. Par exemple, imaginons que je souhaite obtenir le score de prestige prédit par le modèle, pour un niveau d’éducation de 10.25, qui n’a pas été observé. Pour cela, il est nécessaire de créer un data frame contenant une variable éducation, avec les valeurs souhaitées. Ce nouveau data frame est ensuite passé dans l’argument “newdata” de la fonction “predict”.
-```{r preds}
-predictions <- tibble(education=c(9.21, 11.07, 14.62))
-predict(lin_model_edu, newdata = predictions, interval = "confidence") %>% kable()
-```
-
-<br />
+# Composants et prédictions
 
 ## Visualisation des composants
 
-<br />
+Résidus de la régression :
 
-Comme déjà vu, précédemment, les résidus de la régression peuvent être obtenus avec la fonction “‘residuals”.
 ```{r add_res}
 data$residuals <- residuals(lin_model_edu)
 head(data) %>% kable()
 ```
 <br />
 
-Les fitted, correspondent, aux prédictions du modèle de régression, mais pour les valeurs observées de la variable prédictive :
+Prédictions du modèle de régression pour les valeurs observées de la variable prédictive :
+
 ```{r add_fitted}
 data$fitted <- fitted(lin_model_edu)
 head(data) %>% kable()
 ```
+
 <br />
 
-La matrice de variance-covariance des paramètres du modèle peut s’obtenir avec la fonction “vcov” :
+Matrice de variance-covariance des paramètres du modèle :
+
 ```{r covariance}
 vcov(lin_model_edu) %>% kable()
 ```
 
 <br />
 
-# **Représentation finale de la régression**
+## Prédiction multiples
+
+Nous pouvons obtenir des réponses prédites par le modèle de régression, pour des valeurs de la variable prédictive n'ayant pas encore été observées.
+
+```{r preds}
+predictions <- tibble(education=c(9.21, 11.07, 14.62))
+predict(lin_model_edu, newdata = predictions, interval = "confidence") %>% kable()
+```
+
+Ici, nous avons réalisé des prédictions pour différents niveaux d'éducation, respectivement $9.21$, $11.07$ et $14.62$ choisis arbitrairement.
+
+<br />
+
+# **Régression linéaire finale**
 
 ```{r add_pred_intervals, message=FALSE, warning=FALSE}
 pred_interval <- predict(lin_model_edu, interval = "prediction")
@@ -544,14 +566,14 @@ linear_regression
 
 <br />
 
-Le modèle de régression linéaire est aussi bien utilisé pour chercher à prédire un phénomène que pour chercher à l'expliquer. Après avoir estimé un modèle de régression linéaire, on peut prédire quel serait le niveau de y pour des valeurs particulières de x. Il permet également d'estimer l'effet d'une ou plusieurs variables sur une autre en contrôlant par un ensemble de facteurs. En apprentissage statistique, la méthode de régression linéaire est considérée comme une méthode d'apprentissage supervisé utilisée pour prédire une variable quantitative. Dans cette perspective, on entraîne généralement le modèle sur un échantillon d'apprentissage et on teste ensuite les performances prédictives du modèle sur un échantillon de test. 
+Le modèle de régression linéaire est aussi bien utilisé pour chercher à prédire un phénomène que pour chercher à l'expliquer. Après avoir estimé un modèle de régression linéaire, nous pouvons prédire quel serait le niveau de *y* pour des valeurs particulières de *x*. Il permet également d'estimer l'effet d'une ou plusieurs variables sur une autre en contrôlant par un ensemble de facteurs. En apprentissage statistique, la méthode de régression linéaire est considérée comme une méthode d'apprentissage supervisé utilisée pour prédire une variable quantitative. Dans cette perspective, nous entraînons généralement le modèle sur un échantillon d'apprentissage et testons ensuite les performances prédictives du modèle sur un échantillon de test. 
 
 <br />
 
-Ce projet a été réalisé dans le cadre du cours de statistiques appliquées. Celui-ci convoque des connaissances en statistiques acquise plus tot cette année et fait le lien avec notre module d'apprentissage supervisé. En effet afin de concevoir nos systèmes prévisionnels, comprendre comment les relations entre les variables d'un jeu de donnée peuvent être étudier est une étape primordial. Il a été l’occasion pour nous, étudiants, de consolider nos compétences en analyse et manipulation de données, puis d'en acquérir de nouvelles par le biais de ce projet.
+Enfin, le projet a été réalisé dans le cadre du cours de statistiques appliquées. Celui-ci convoque des notions en statistiques abordées durant cette année et fait le lien avec notre module d'apprentissage supervisé. Afin de concevoir nos systèmes prévisionnels, comprendre et interpréter les effets ou relations entre plusieurs variables d'un jeu de données est essentiel.
 
 <br />
-<br />
+******
 <br />
 
 </body>
