@@ -100,9 +100,10 @@ head(data) %>% paged_table()
 ## Visualisation des données
 
 ```{r viz_edu, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
-viz_edu <- data %>% 
+viz_edu <- data %>% na.omit() %>%
   ggplot(aes(x = prestige, y = education, col = type)) + 
   geom_point() + theme_bw() +
+  theme(legend.title = element_blank()) +
   scale_x_continuous(
     breaks = seq(25, 75, 25)
   ) +
@@ -112,33 +113,35 @@ viz_edu <- data %>%
 
 viz_edu <- ggplotly(viz_edu)
 
-viz_inc <- data %>% 
+viz_inc <- data %>% na.omit() %>%
   ggplot(aes(x = prestige, y = income, col = type)) + 
   geom_point() + theme_bw() +
   scale_x_continuous(
     breaks = seq(25, 75, 25)
   ) +
   scale_y_continuous(
-    breaks = seq(0, 20000, 10000)
+    breaks = seq(10000, 20000, 10000)
   )
 
 viz_inc <- ggplotly(viz_inc)
 
-viz_women <- data %>% 
+viz_women <- data %>% na.omit() %>%
   ggplot(aes(x = prestige, y = women, col = type)) + 
   geom_point() + theme_bw() +
+  theme(legend.title = element_blank()) +
   scale_x_continuous(
-      breaks = seq(25, 75, 25)
-    ) +
-    scale_y_continuous(
-      breaks = seq(0, 100, 25)
-    )
+    breaks = seq(25, 75, 25)
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 100, 25)
+  )
 
 viz_women <- ggplotly(viz_women)
 
-viz_census <- data %>% 
+viz_census <- data %>% na.omit() %>%
   ggplot(aes(x = prestige, y = census, col = type)) + 
-  geom_point() + theme_bw() +
+  geom_point() + theme_bw() + 
+  theme(legend.title = element_blank()) +
   scale_x_continuous(
     breaks = seq(25, 75, 25)
   ) +
@@ -148,10 +151,16 @@ viz_census <- data %>%
   
 viz_census <- ggplotly(viz_census)
 
-subplot(style(viz_edu, showlegend = FALSE), style(viz_inc, showlegend = FALSE), style(viz_women, showlegend = FALSE), viz_census, nrows = 2, margin = 0.07)
+subplot(
+  style(viz_edu, showlegend = FALSE), 
+  style(viz_inc, showlegend = FALSE), 
+  style(viz_women, showlegend = FALSE), 
+  viz_census, nrows = 2, margin = 0.09, titleX = TRUE, titleY = TRUE
+)
 ```
 
 <br />
+
 Dans un premier temps, nous pouvons observer une forte relation linéaire entre *prestige* et les variables *education* et *income*, contrairement à *women* et *census*.
 
 Dans un second temps, nous pouvons étudier d'éventuelles corrélations entre deux variables à l'aide d'un nuage de points. Ici, nous utilisons la fonction *ggpairs* afin de pouvoir en observer plusieurs en même temps.
@@ -170,7 +179,9 @@ scatterM
 ```
 
 <br />
-Avec les observations précédentes, nous pouvons déjà écarter certaines linéarités et choisir lesquelles sont intéressantes à étudier. Ici, nous reprenons donc la relation entre la variable *prestige* (il s’agit d’un score de prestige relatif à la profession) et la variable *education* (qui reflète le niveau d’étude). Cette fois nous utilisons *ggplot2* pour une meilleure représentation.
+Avec les observations précédentes, nous pouvons déjà écarter certaines linéarités et choisir lesquelles sont intéressantes à étudier.
+
+Ici, nous choisissons tout d'abord de tester la relation entre la variable *prestige* (il s’agit d’un score de prestige relatif à la profession) et la variable *education* (qui reflète le niveau d’étude) dont le coefficient de corrélation est de $0.85$.
 <br />
 
 ```{r education, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
@@ -191,6 +202,7 @@ scatter_edu <- ggplotly(education)
 scatter_edu
 ```
 
+<br />
 La droite bleue est définie par la méthode des moindres carrés (MSE), il s'agit d'une droite de régression linéaire entre les variables *education* et *prestige*.
 
 La courbe rouge indique la tendance globale entre ces deux variables, il s'agit d'une courbe de régression de type lowess. Les deux courbes extérieures représentent l'intervalle de confiance de cette courbe de régression.
@@ -199,7 +211,7 @@ On constate que que la droite de régression est presque toujours comprise dans 
 
 <br />
 
-Nous testons aussi la relation entre les variables *income* et *prestige*.
+Nous testons aussi la relation entre les variables *income* et *prestige* dont le coefficient de corrélation est de $0.715$.
 
 ```{r income, fig.height=6, fig.width=9, message=FALSE, warning=FALSE}
 income <- data %>% 
@@ -546,7 +558,7 @@ data <- cbind(data, pred_interval)
 linear_regression <- data %>% 
   ggplot(aes(y = prestige, x = education)) +
   geom_point(size = 1.2) +
-  geom_smooth(color = "red", method = "lm", fill = "red") +
+  geom_smooth(color = "red", method = "lm", fill = "grey") +
   geom_line(aes(y = lwr), color = "red", linetype = "dashed") +
   geom_line(aes(y =  upr), color = "red", linetype = "dashed") +    
   annotate("text", x = 9, y = 80, 
